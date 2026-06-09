@@ -66,6 +66,12 @@ FEED_POSTS = [
 ]
 
 KM_DRAFTS = [
+    {"km_name": "Sneha Kapoor (KM)", "domain": "Agentic AI",
+     "title": "Agentic AI Course 2.0 — Learning Curriculum Draft",
+     "content": "Module 1: What is Agentic AI — difference between LLMs, copilots, and autonomous agents. Key concepts: planning, memory, tool use, multi-agent orchestration.\n\nModule 2: Agent Architecture Patterns — ReAct (Reasoning + Acting), Plan-and-Execute, HITL (Human-in-the-Loop). When to use each pattern on client engagements.\n\nModule 3: Building Your First Agent — hands-on lab using CrewAI or LangGraph. Task: build a 2-agent pipeline that researches a supply chain risk and drafts a client briefing.\n\nModule 4: Agentic AI in Genpact Delivery — real case studies from Finance Ops, Supply Chain, HR Modernisation. How agents are replacing 4-step manual processes.\n\nModule 5: Responsible Agentic AI — guardrails, audit trails, human oversight design. How to explain agent decisions to a client team that doesn't trust black boxes.",
+     "tags": "agentic-AI,curriculum,learning,course-2.0",
+     "agent_prompt": "KM has shared the Agentic AI Course 2.0 curriculum for expert review 📚\n\nGurus — this is the learning path we're building for the next cohort of Genpact practitioners. Before it goes live, we need your validation.\n\nOn a scale of 1–3:\n1 = Modules are missing the real practitioner gaps — learners won't be deployment-ready\n2 = Right direction, but one module needs a rethink\n3 = Solid — I'd stake my team's upskilling on this curriculum\n\nRate it. If below 3, tell us the one module or concept that needs fixing.",
+     "status": "pending", "days_ago": 1},
     {"km_name": "Sneha Kapoor (KM)", "domain": "Finance Transformation",
      "title": "Finance Close Process Automation — 5 Key Patterns",
      "content": "Modern finance close automation follows five repeatable patterns: (1) Journal entry automation via RPA for high-volume, low-judgment entries. (2) Variance analysis triggers — auto-flag entries exceeding threshold. (3) Intercompany reconciliation via matching algorithms. (4) Accrual estimation using ML on historical data. (5) Consolidated reporting via real-time dashboards replacing manual consolidation.",

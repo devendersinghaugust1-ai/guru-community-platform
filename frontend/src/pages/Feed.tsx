@@ -62,7 +62,7 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', marginBottom: 12, overflow: 'hidden' }}>
       <div style={{ background: '#1B2A4A', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>KM Draft · {draft.domain}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>KM Learning Content · {draft.domain}</span>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, marginTop: 2 }}>{draft.title}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -109,7 +109,7 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
 
         {!submitted ? (
           <div style={{ marginTop: 14, padding: 14, background: '#fffbea', borderRadius: 8, border: '1px solid #ffc000' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#856404', marginBottom: 10 }}>Your Reality Check</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#856404', marginBottom: 10 }}>Your Expert Validation</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               {[1, 2, 3].map(n => (
                 <button key={n} onClick={() => setRating(n)}
@@ -128,7 +128,7 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
             )}
             <button onClick={submit} disabled={!rating || submitting}
               style={{ marginTop: 8, padding: '8px 20px', background: rating ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: rating ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: 13 }}>
-              {submitting ? 'Submitting...' : '⚡ Submit Reality Check'}
+              {submitting ? 'Submitting...' : '✅ Submit Validation'}
             </button>
           </div>
         ) : (
@@ -518,11 +518,11 @@ export default function Feed() {
       {/* Main content */}
       <div style={{ flex: 1 }}>
 
-        {/* ── Section 1: Reality Check ── */}
+        {/* ── Section 1: Content Validation Queue ── */}
         <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0', marginBottom: 20 }}>
-          <SectionHeader icon="🎯" title="Reality Check Queue"
-            subtitle={`${pendingDrafts.length} KM draft${pendingDrafts.length !== 1 ? 's' : ''} waiting for your expert judgment — takes 30 seconds`}
-            color="#FAC778" />
+          <SectionHeader icon="✅" title="Content Validation Queue"
+            subtitle={`${pendingDrafts.length} KM learning content${pendingDrafts.length !== 1 ? 's' : ''} waiting for your expert validation — takes 30 seconds`}
+            color="#107c10" />
           {pendingDrafts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 20, color: '#888', fontSize: 12 }}>✓ All KM drafts reviewed. Check back tomorrow.</div>
           ) : (
