@@ -34,29 +34,44 @@ function SectionHeader({ icon, title, subtitle, color }: any) {
   )
 }
 
-// ── Reality Check card ──────────────────────────────────────
+// ── Content Validation card ──────────────────────────────────────
+type ValidationChoice = 'approved' | 'not_approved' | 'mg_review' | null
+
 function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
   const [expanded, setExpanded] = useState(false)
-  const [rating, setRating] = useState<number | null>(null)
-  const [missingLink, setMissingLink] = useState('')
+  const [choice, setChoice] = useState<ValidationChoice>(null)
+  const [feedback, setFeedback] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   const myRating = draft.ratings?.find((r: any) => r.guru_id === activeGuruId)
 
   useEffect(() => {
-    if (myRating) { setRating(myRating.rating); setSubmitted(true) }
+    if (myRating) { setSubmitted(true) }
   }, [myRating])
 
+  const choiceToRating: Record<string, number> = { approved: 3, not_approved: 1, mg_review: 2 }
+
   const submit = async () => {
-    if (!rating) return
+    if (!choice) return
+    if ((choice === 'not_approved' || choice === 'mg_review') && !feedback.trim()) return
     setSubmitting(true)
-    await api.post(`/km/drafts/${draft.id}/rate`, { guru_id: activeGuruId, rating, missing_link: missingLink })
+    await api.post(`/km/drafts/${draft.id}/rate`, {
+      guru_id: activeGuruId,
+      rating: choiceToRating[choice],
+      missing_link: feedback
+    })
     setSubmitted(true); setSubmitting(false); onRated()
   }
 
-  const ratingColors: Record<number, string> = { 1: '#d83b01', 2: '#ffc000', 3: '#107c10' }
-  const ratingLabels: Record<number, string> = { 1: "Misses the real picture", 2: "Close, something's missing", 3: "I'd stake my reputation on this" }
+  const statusBg = draft.status === 'approved' ? '#107c10' : draft.status === 'needs_revision' ? '#d83b01' : '#ffc000'
+  const statusLabel = draft.status === 'approved' ? '✓ Approved' : draft.status === 'needs_revision' ? '⚠ Needs Revision' : '⏳ Pending'
+
+  const OPTIONS = [
+    { key: 'approved', label: '✅ Approved', desc: 'Content is accurate — ready to publish', color: '#107c10', bg: '#e6f4ea' },
+    { key: 'not_approved', label: '❌ Not Approved', desc: 'Has issues — needs rework before publishing', color: '#d83b01', bg: '#fce8e6' },
+    { key: 'mg_review', label: '🔄 Send to MG for Approval', desc: 'Good direction — share feedback and escalate to Master Guru', color: '#8764b8', bg: '#f3effa' },
+  ]
 
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', marginBottom: 12, overflow: 'hidden' }}>
@@ -65,16 +80,9 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
           <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>KM Learning Content · {draft.domain}</span>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: 13, marginTop: 2 }}>{draft.title}</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {draft.avg_rating > 0 && (
-            <div style={{ background: ratingColors[Math.round(draft.avg_rating)] || '#888', color: '#fff', borderRadius: 12, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
-              Avg {draft.avg_rating.toFixed(1)} / 3
-            </div>
-          )}
-          <span style={{ background: draft.status === 'approved' ? '#107c10' : draft.status === 'needs_revision' ? '#d83b01' : '#ffc000', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10 }}>
-            {draft.status === 'approved' ? '✓ Approved' : draft.status === 'needs_revision' ? '⚠ Needs revision' : '⏳ Pending'}
-          </span>
-        </div>
+        <span style={{ background: statusBg, color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10 }}>
+          {statusLabel}
+        </span>
       </div>
 
       <div style={{ padding: 16 }}>
@@ -84,7 +92,7 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
 
         <button onClick={() => setExpanded(!expanded)}
           style={{ marginTop: 10, fontSize: 12, color: '#0078d4', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          {expanded ? '▲ Hide draft content' : '▼ View full KM draft'}
+          {expanded ? '▲ Hide content' : '▼ View full content'}
         </button>
 
         {expanded && (
@@ -95,45 +103,57 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
 
         {draft.ratings?.length > 0 && (
           <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {draft.ratings.map((r: any) => (
-              <div key={r.guru_id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f9fa', borderRadius: 20, padding: '4px 10px', border: `1px solid ${ratingColors[r.rating]}` }}>
-                <Avatar initials={r.guru_initials} color={r.guru_color} size={20} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: ratingColors[r.rating] }}>
-                  {r.guru_name.split(' ')[0]} rated {r.rating}/3
-                </span>
-                {r.missing_link && <span title={r.missing_link} style={{ fontSize: 11, color: '#888', cursor: 'help' }}>· 💬</span>}
-              </div>
-            ))}
+            {draft.ratings.map((r: any) => {
+              const label = r.rating === 3 ? '✅ Approved' : r.rating === 1 ? '❌ Not Approved' : '🔄 Sent to MG'
+              const col = r.rating === 3 ? '#107c10' : r.rating === 1 ? '#d83b01' : '#8764b8'
+              return (
+                <div key={r.guru_id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f9fa', borderRadius: 20, padding: '4px 10px', border: `1px solid ${col}` }}>
+                  <Avatar initials={r.guru_initials} color={r.guru_color} size={20} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: col }}>{r.guru_name.split(' ')[0]} · {label}</span>
+                  {r.missing_link && <span title={r.missing_link} style={{ fontSize: 11, color: '#888', cursor: 'help' }}>· 💬</span>}
+                </div>
+              )
+            })}
           </div>
         )}
 
         {!submitted ? (
-          <div style={{ marginTop: 14, padding: 14, background: '#fffbea', borderRadius: 8, border: '1px solid #ffc000' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#856404', marginBottom: 10 }}>Your Expert Validation</div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              {[1, 2, 3].map(n => (
-                <button key={n} onClick={() => setRating(n)}
-                  style={{ flex: 1, padding: '10px 0', border: `2px solid ${rating === n ? ratingColors[n] : '#e0e0e0'}`,
-                    background: rating === n ? `${ratingColors[n]}15` : '#fff', borderRadius: 8,
-                    cursor: 'pointer', fontWeight: 700, fontSize: 16, color: rating === n ? ratingColors[n] : '#666' }}>
-                  {n}
+          <div style={{ marginTop: 14, padding: 14, background: '#f8f9fa', borderRadius: 8, border: '1px solid #e0e0e0' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1B2A4A', marginBottom: 12 }}>Your Validation</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+              {OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => { setChoice(opt.key as ValidationChoice); setFeedback('') }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+                    border: `2px solid ${choice === opt.key ? opt.color : '#e0e0e0'}`,
+                    background: choice === opt.key ? opt.bg : '#fff',
+                    borderRadius: 8, cursor: 'pointer', textAlign: 'left' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: choice === opt.key ? opt.color : '#333' }}>{opt.label}</div>
+                    <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{opt.desc}</div>
+                  </div>
+                  {choice === opt.key && <span style={{ color: opt.color, fontSize: 16 }}>●</span>}
                 </button>
               ))}
             </div>
-            {rating && <div style={{ fontSize: 11, color: ratingColors[rating], fontWeight: 600, marginBottom: 8 }}>{ratingLabels[rating]}</div>}
-            {rating && rating < 3 && (
-              <textarea value={missingLink} onChange={e => setMissingLink(e.target.value)} rows={2}
-                placeholder="What's the one thing that's missing or wrong? (one line is enough)"
-                style={{ width: '100%', padding: 8, border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 12, resize: 'none', fontFamily: 'inherit' }} />
+
+            {(choice === 'not_approved' || choice === 'mg_review') && (
+              <textarea value={feedback} onChange={e => setFeedback(e.target.value)} rows={3}
+                placeholder={choice === 'not_approved'
+                  ? 'What needs to be fixed before this can be approved? Be specific.'
+                  : 'Share your feedback for the Master Guru — what needs their expert review?'}
+                style={{ width: '100%', padding: 10, border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 12, resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
             )}
-            <button onClick={submit} disabled={!rating || submitting}
-              style={{ marginTop: 8, padding: '8px 20px', background: rating ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: rating ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: 13 }}>
-              {submitting ? 'Submitting...' : '✅ Submit Validation'}
+
+            <button onClick={submit}
+              disabled={!choice || submitting || ((choice === 'not_approved' || choice === 'mg_review') && !feedback.trim())}
+              style={{ padding: '8px 20px', background: choice ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6,
+                cursor: choice ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: 13 }}>
+              {submitting ? 'Submitting...' : choice === 'approved' ? '✅ Confirm Approval' : choice === 'not_approved' ? '❌ Submit Rejection' : '🔄 Send to MG'}
             </button>
           </div>
         ) : (
           <div style={{ marginTop: 10, padding: '8px 14px', background: '#e6f4ea', borderRadius: 6, fontSize: 12, color: '#107c10', fontWeight: 600 }}>
-            ✓ You rated this {rating}/3{missingLink ? ` · Your correction noted` : ''}
+            ✓ Your validation submitted{feedback ? ' · Feedback noted' : ''}
           </div>
         )}
       </div>
