@@ -154,8 +154,27 @@ NOTIFICATIONS_DATA = [
 ]
 
 
+def _patch_new_drafts(db: Session):
+    """Add new KM drafts introduced after initial seed without wiping existing data."""
+    new_titles = ["Agentic AI Course 2.0 — Learning Curriculum Draft"]
+    for title in new_titles:
+        exists = db.query(KMDraft).filter(KMDraft.title == title).first()
+        if not exists:
+            draft_data = next((d for d in KM_DRAFTS if d["title"] == title), None)
+            if draft_data:
+                db.add(KMDraft(
+                    km_name=draft_data["km_name"], domain=draft_data["domain"],
+                    title=draft_data["title"], content=draft_data["content"],
+                    tags=draft_data["tags"], agent_prompt=draft_data["agent_prompt"],
+                    status=draft_data["status"], avg_rating=0.0, rating_count=0,
+                    created_at=datetime.utcnow() - timedelta(days=draft_data["days_ago"])))
+                db.commit()
+
+
 def seed(db: Session):
     if db.query(Guru).count() > 0:
+        # Still check if new KM drafts need to be added
+        _patch_new_drafts(db)
         return
 
     base = datetime.utcnow() - timedelta(days=45)
