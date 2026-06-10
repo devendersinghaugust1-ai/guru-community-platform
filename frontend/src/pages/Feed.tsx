@@ -340,18 +340,24 @@ export default function Feed() {
           <div style={{ fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 }}>Viewing as</div>
           <div style={{ maxHeight: 380, overflowY: 'auto' }}>
             {gurus.map(g => (
-              <div key={g.id} onClick={() => setActiveGuruId(g.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
+              <div key={g.id}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, marginBottom: 3,
                   background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
                   border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
-                <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
-                <div style={{ minWidth: 0 }}>
+                <div onClick={() => setActiveGuruId(g.id)} style={{ cursor: 'pointer', flexShrink: 0 }}>
+                  <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
+                </div>
+                <div onClick={() => setActiveGuruId(g.id)} style={{ minWidth: 0, flex: 1, cursor: 'pointer' }}>
                   <div style={{ fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                     {g.name.split(' ')[0]}
                     {g.is_master_guru && <span style={{ fontSize: 8, background: '#ffc000', color: '#000', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>MG</span>}
                   </div>
                   <div style={{ fontSize: 9, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.title}</div>
                 </div>
+                <span onClick={() => navigate(`/guru/${g.id}`)} title="View profile"
+                  style={{ fontSize: 12, color: '#0078d4', cursor: 'pointer', flexShrink: 0, padding: '2px 4px', borderRadius: 4, opacity: 0.7 }}>
+                  👤
+                </span>
               </div>
             ))}
           </div>

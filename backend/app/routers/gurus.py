@@ -13,6 +13,8 @@ class GuruProfile(BaseModel):
     experience_years: int; certifications: str; avatar_initials: str
     avatar_color: str; is_master_guru: bool; use_cases_shared: int
     learners_impacted: int; ai_guru_corrections: int; domain_rank: int
+    reviews_completed: int = 0; review_turnaround_hrs: float = 0.0
+    escalation_saves: int = 0; contribution_index: int = 0; narrative: str = ""
     class Config: from_attributes = True
 
 

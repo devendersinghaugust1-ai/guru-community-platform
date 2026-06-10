@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import Avatar from '../components/Avatar'
 
@@ -50,6 +51,7 @@ export default function Leaderboard() {
   const [gurus, setGurus] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     api.get('/km/guru-stats').then(r => setGurus(r.data)).finally(() => setLoading(false))
@@ -166,12 +168,14 @@ export default function Leaderboard() {
 
             {/* Rows */}
             {rows.map((g, i) => (
-              <div key={g.id} style={{
+              <div key={g.id} onClick={() => navigate(`/guru/${g.id}`)} style={{
                 display: 'grid', gridTemplateColumns: '32px 2fr 90px 110px 120px 110px 140px',
                 padding: '12px 16px', borderBottom: i < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
-                alignItems: 'center', gap: 8,
+                alignItems: 'center', gap: 8, cursor: 'pointer',
                 background: i === 0 ? 'rgba(250,199,120,0.06)' : 'transparent',
-              }}>
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f5f8ff')}
+              onMouseLeave={e => (e.currentTarget.style.background = i === 0 ? 'rgba(250,199,120,0.06)' : 'transparent')}>
                 {/* Rank */}
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
