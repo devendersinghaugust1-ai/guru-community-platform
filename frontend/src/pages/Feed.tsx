@@ -36,7 +36,19 @@ function SectionHeader({ icon, title, subtitle, color }: any) {
 
 // ── Corpus Discussion card ──────────────────────────────────
 function SparkCard({ item, onRespond }: any) {
-  const [responded, setResponded] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const submit = async () => {
+    if (!text.trim()) return
+    setSubmitting(true)
+    await onRespond(item.id, text.trim())
+    setSubmitted(true)
+    setSubmitting(false)
+  }
+
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', marginBottom: 12, overflow: 'hidden' }}>
       <div style={{ background: 'linear-gradient(135deg, #1B2A4A, #2d4a7a)', padding: '10px 16px' }}>
@@ -47,19 +59,46 @@ function SparkCard({ item, onRespond }: any) {
         <div style={{ fontSize: 12, color: '#444', background: '#f3f2f1', padding: 12, borderRadius: 6, lineHeight: 1.7, fontStyle: 'italic', whiteSpace: 'pre-line' }}>
           {item.prompt}
         </div>
+
         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 11, color: '#888' }}>
             {item.response_count} Guru{item.response_count !== 1 ? 's' : ''} responded
           </span>
-          {!responded ? (
-            <button onClick={() => { setResponded(true); onRespond(item.id) }}
+          {submitted ? (
+            <span style={{ fontSize: 12, color: '#107c10', fontWeight: 600 }}>✓ Your read is noted — thank you</span>
+          ) : !open ? (
+            <button onClick={() => setOpen(true)}
               style={{ padding: '6px 16px', background: '#1B2A4A', color: '#fff', border: 'none', borderRadius: 16, cursor: 'pointer', fontSize: 12 }}>
-              💬 I've seen this — share my read
+              💬 Share my read
             </button>
-          ) : (
-            <span style={{ fontSize: 12, color: '#107c10', fontWeight: 600 }}>✓ Response noted</span>
-          )}
+          ) : null}
         </div>
+
+        {open && !submitted && (
+          <div style={{ marginTop: 12, padding: 14, background: '#f3f0fa', borderRadius: 8, border: '1px solid #8764b830' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1B2A4A', marginBottom: 8 }}>
+              Your read — what have you seen on real engagements?
+            </div>
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              autoFocus
+              rows={3}
+              placeholder="Share your take — what actually works on client engagements? What's the missing piece the AI Guru is getting wrong?"
+              style={{ width: '100%', padding: 10, border: '1px solid #c8b8e8', borderRadius: 6, fontSize: 12, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => { setOpen(false); setText('') }}
+                style={{ padding: '6px 14px', background: '#fff', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#555' }}>
+                Cancel
+              </button>
+              <button onClick={submit} disabled={!text.trim() || submitting}
+                style={{ padding: '6px 16px', background: text.trim() ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: text.trim() ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: 600 }}>
+                {submitting ? 'Submitting…' : '✓ Submit to Corpus'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -352,7 +391,11 @@ export default function Feed() {
               No corpus gaps flagged right now. Click Refresh to run the agent scan.
             </div>
           ) : (
-            sparks.map(s => <SparkCard key={s.id} item={s} onRespond={(id: number) => api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId })} />)
+            sparks.map(s => <SparkCard key={s.id} item={s} onRespond={async (id: number, content: string) => {
+              await api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId, content })
+              api.get('/km/spark').then(r => setSparks(r.data))
+              api.get('/feed/').then(r => setPosts(r.data))
+            }} />)
           )}
         </div>
 

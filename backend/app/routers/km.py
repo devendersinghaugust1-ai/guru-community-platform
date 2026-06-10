@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, ExecutiveBroadcast, Guru, Notification
+from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, ExecutiveBroadcast, Guru, Notification, FeedPost
 
 router = APIRouter(prefix="/km", tags=["km"])
 
@@ -203,14 +203,33 @@ def list_sparks(db: Session = Depends(get_db)):
 
 class SparkResponseIn(BaseModel):
     guru_id: int
+    content: str = ""
 
 
 @router.post("/spark/{spark_id}/respond")
 def respond_to_spark(spark_id: int, body: SparkResponseIn, db: Session = Depends(get_db)):
     item = db.query(OrganicSpark).filter(OrganicSpark.id == spark_id).first()
-    if item:
-        item.response_count += 1
-        db.commit()
+    if not item:
+        return {"status": "not_found"}
+    item.response_count += 1
+
+    # If Guru wrote a response, publish it as a community post so the feed stays alive
+    if body.content.strip():
+        guru = db.query(Guru).filter(Guru.id == body.guru_id).first()
+        db.add(FeedPost(
+            guru_id=body.guru_id,
+            post_type="domain_insight",
+            title=f"Corpus Discussion response: {item.domain}",
+            content=body.content.strip(),
+            domain=item.domain,
+            tags=f"corpus-discussion,{item.domain.lower().replace(' ', '-')}",
+            agent_generated=False,
+        ))
+        if guru:
+            guru.ai_guru_corrections = (guru.ai_guru_corrections or 0) + 1
+            guru.contribution_index = min(100, (guru.reviews_completed * 5) + (guru.escalation_saves * 8) + (guru.ai_guru_corrections * 3))
+
+    db.commit()
     return {"status": "recorded"}
 
 
