@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react'
 import api from '../api'
 import Avatar from '../components/Avatar'
 
+const BU_HEADS: Record<string, string> = {
+  'Finance Transformation': 'Rajesh Nambiar',
+  'Supply Chain': 'Anish Arora',
+  'HR Modernisation': 'Piyush Singh',
+  'Collections & Credit': 'Balkrishan Kalra',
+  'Procurement': 'Tiger Tyagarajan',
+}
+
 function ScoreBar({ value, max = 100, color }: { value: number; max?: number; color: string }) {
   return (
     <div style={{ background: '#f0f0f0', borderRadius: 4, height: 6, width: '100%' }}>
@@ -14,12 +22,23 @@ export default function Report() {
   const [stats, setStats] = useState<any[]>([])
   const [broadcasts, setBroadcasts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState<number | null>(null)
+  const [sent, setSent] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    Promise.all([api.get('/km/guru-stats'), api.get('/km/broadcasts')])
-      .then(([s, b]) => { setStats(s.data); setBroadcasts(b.data) })
-      .finally(() => setLoading(false))
-  }, [])
+  const load = () => Promise.all([api.get('/km/guru-stats'), api.get('/km/broadcasts')])
+    .then(([s, b]) => { setStats(s.data); setBroadcasts(b.data) })
+    .finally(() => setLoading(false))
+
+  useEffect(() => { load() }, [])
+
+  const sendBroadcast = async (guru: any) => {
+    setSending(guru.id)
+    const buHead = BU_HEADS[guru.domain] || 'BU Head'
+    await api.post('/km/broadcasts/send', { guru_id: guru.id, bu_head_name: buHead })
+    setSent(s => new Set(s).add(guru.id))
+    setSending(null)
+    load()
+  }
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading BU Report...</div>
 
@@ -104,15 +123,28 @@ export default function Report() {
                     ))}
                   </div>
 
-                  {/* Broadcast progress */}
-                  <div style={{ marginTop: 8, padding: '6px 8px', background: g.reviews_to_broadcast === 0 ? '#e6f4ea' : '#f8f9fa', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 11 }}>📤</span>
+                  {/* Broadcast progress / send button */}
+                  <div style={{ marginTop: 8 }}>
                     {g.reviews_to_broadcast === 0 ? (
-                      <span style={{ fontSize: 10, color: '#107c10', fontWeight: 600 }}>Executive Broadcast triggered ✓</span>
+                      sent.has(g.id) || g.broadcast_count > 0 ? (
+                        <div style={{ padding: '6px 8px', background: '#e6f4ea', borderRadius: 6, fontSize: 10, color: '#107c10', fontWeight: 600 }}>
+                          📤 Broadcast sent to {BU_HEADS[g.domain] || 'BU Head'} ✓
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => sendBroadcast(g)}
+                          disabled={sending === g.id}
+                          style={{ width: '100%', padding: '6px 10px', background: sending === g.id ? '#999' : '#8764b8', color: '#fff', border: 'none', borderRadius: 6, cursor: sending === g.id ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 11 }}>
+                          {sending === g.id ? 'Sending…' : `📤 Send Executive Broadcast → ${BU_HEADS[g.domain] || 'BU Head'}`}
+                        </button>
+                      )
                     ) : (
-                      <span style={{ fontSize: 10, color: '#666' }}>
-                        <span style={{ fontWeight: 700, color: '#8764b8' }}>{g.reviews_to_broadcast} more review{g.reviews_to_broadcast !== 1 ? 's' : ''}</span> to trigger Executive Broadcast to BU Head
-                      </span>
+                      <div style={{ padding: '6px 8px', background: '#f8f9fa', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11 }}>📤</span>
+                        <span style={{ fontSize: 10, color: '#666' }}>
+                          <span style={{ fontWeight: 700, color: '#8764b8' }}>{g.reviews_to_broadcast} more review{g.reviews_to_broadcast !== 1 ? 's' : ''}</span> to unlock Executive Broadcast
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>

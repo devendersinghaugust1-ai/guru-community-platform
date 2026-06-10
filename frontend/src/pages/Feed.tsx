@@ -311,9 +311,8 @@ function ComposeBox({ activeGuru, onSubmitted }: { activeGuru: any; onSubmitted:
 }
 
 // ── Main Feed page ──────────────────────────────────────────
-export default function Feed() {
+export default function Feed({ activeGuruId, onGuruChange }: { activeGuruId: number; onGuruChange: (id: number) => void }) {
   const [gurus, setGurus] = useState<any[]>([])
-  const [activeGuruId, setActiveGuruId] = useState(1)
   const [posts, setPosts] = useState<any[]>([])
   const [sparks, setSparks] = useState<any[]>([])
   const navigate = useNavigate()
@@ -327,6 +326,8 @@ export default function Feed() {
   useEffect(() => { load() }, [])
 
   const activeGuru = gurus.find(g => g.id === activeGuruId)
+  const setActiveGuruId = (id: number) => onGuruChange(id)
+
   const react = async (postId: number, type: string) => {
     await api.post(`/feed/posts/${postId}/react`, { guru_id: activeGuruId, reaction_type: type })
     api.get('/feed/').then(r => setPosts(r.data))

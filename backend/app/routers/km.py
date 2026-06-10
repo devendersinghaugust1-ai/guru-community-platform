@@ -269,6 +269,48 @@ def respond_to_spark(spark_id: int, body: SparkResponseIn, db: Session = Depends
 
 # ── Executive Broadcasts ─────────────────────────────────────
 
+class BroadcastSendIn(BaseModel):
+    guru_id: int
+    bu_head_name: str = "BU Head"
+
+
+@router.post("/broadcasts/send")
+def send_broadcast(body: BroadcastSendIn, db: Session = Depends(get_db)):
+    guru = db.query(Guru).filter(Guru.id == body.guru_id).first()
+    if not guru:
+        return {"error": "Guru not found"}
+
+    message = (
+        f"{guru.name} ({guru.grade}, {guru.domain}) completed {guru.reviews_completed} KM reviews "
+        f"this quarter, intercepted {guru.escalation_saves} AI Guru failures, and protected "
+        f"{guru.learners_impacted:,} learners from incorrect information. "
+        f"Contribution Index: {guru.contribution_index}/100 — top tier contributor."
+    )
+
+    broadcast = ExecutiveBroadcast(
+        guru_id=guru.id,
+        bu_head_name=body.bu_head_name,
+        reviews_this_month=guru.reviews_completed,
+        escalation_saves=guru.escalation_saves,
+        learners_protected=guru.learners_impacted,
+        message_preview=message[:400],
+        status="sent",
+        sent_at=datetime.utcnow(),
+    )
+    db.add(broadcast)
+
+    db.add(Notification(
+        guru_id=guru.id, type="broadcast_sent",
+        title="Executive Broadcast sent to your BU Head",
+        message=f"Your Q3 contributions have been reported to {body.bu_head_name}: "
+                f"{guru.reviews_completed} reviews, {guru.escalation_saves} AI saves, "
+                f"{guru.learners_impacted:,} learners protected.",
+    ))
+
+    db.commit()
+    return {"status": "sent", "message_preview": message[:400]}
+
+
 @router.get("/broadcasts")
 def list_broadcasts(db: Session = Depends(get_db)):
     items = db.query(ExecutiveBroadcast).order_by(ExecutiveBroadcast.created_at.desc()).all()
