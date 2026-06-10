@@ -34,3 +34,13 @@ def run_ai_guru_quality(db: Session = Depends(get_db)):
 @router.post("/nudge-scan")
 def run_nudge_scan(db: Session = Depends(get_db)):
     return nudge_agent.run(db)
+
+
+class NudgeSingleInput(BaseModel):
+    guru_id: int
+    skill_topic: str
+
+
+@router.post("/nudge-single")
+def run_nudge_single(data: NudgeSingleInput, db: Session = Depends(get_db)):
+    return nudge_agent.nudge_single(db, data.guru_id, data.skill_topic)

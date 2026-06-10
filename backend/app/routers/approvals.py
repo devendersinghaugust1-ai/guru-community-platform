@@ -13,7 +13,7 @@ router = APIRouter(prefix="/approvals", tags=["approvals"])
 
 
 class SubmitUseCaseRequest(BaseModel):
-    guru_id: int; domain: str; raw_text: str
+    guru_id: int; domain: str; raw_text: str; post_type: str = "use_case"
 
 class MGDecision(BaseModel):
     action: str; mg_id: int

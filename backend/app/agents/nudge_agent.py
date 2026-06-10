@@ -34,3 +34,23 @@ def _message(guru: Guru, gap: dict) -> str:
             f"You've likely worked on a {gap['project_hint']}. Share even a brief use case — "
             f"we'll structure it into a post for you in under 2 minutes.\n\n"
             f"Your BU Head will see your contribution in the next quarterly Capability Report.")
+
+
+def nudge_single(db: Session, guru_id: int, skill_topic: str) -> dict:
+    """Send a targeted nudge to a specific guru about a specific skill topic."""
+    guru = db.query(Guru).filter(Guru.id == guru_id).first()
+    if not guru:
+        return {"status": "error", "message": "Guru not found"}
+
+    gaps = DOMAIN_GAPS.get(guru.domain, [])
+    matched_gap = next((g for g in gaps if g["topic"] == skill_topic), None)
+    if not matched_gap:
+        matched_gap = {"topic": skill_topic, "peer_count": 20, "query_volume": 50, "project_hint": "relevant project"}
+
+    db.add(Notification(
+        guru_id=guru_id, type="nudge",
+        title=f"Your expertise needed: {skill_topic}",
+        message=_message(guru, matched_gap),
+    ))
+    db.commit()
+    return {"status": "sent", "guru": guru.name, "topic": skill_topic}

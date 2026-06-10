@@ -3,8 +3,12 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
 from app.models import PipelineCandidate
+from app.agents.pipeline_agent import MOCK_HR_DATA
 
 router = APIRouter(prefix="/pipeline", tags=["pipeline"])
+
+# Index mock data by name for enrichment
+_HR_INDEX = {p["name"]: p for p in MOCK_HR_DATA}
 
 
 class OutreachApproval(BaseModel):
@@ -14,9 +18,18 @@ class OutreachApproval(BaseModel):
 @router.get("/candidates")
 def get_candidates(db: Session = Depends(get_db)):
     candidates = db.query(PipelineCandidate).order_by(PipelineCandidate.signal_score.desc()).all()
-    return [{"id": c.id, "name": c.name, "title": c.title, "grade": c.grade, "domain": c.domain,
-             "business_unit": c.business_unit, "signal_score": c.signal_score, "signals": c.signals,
-             "outreach_draft": c.outreach_draft, "status": c.status, "identified_at": c.identified_at} for c in candidates]
+    result = []
+    for c in candidates:
+        extra = _HR_INDEX.get(c.name, {})
+        result.append({
+            "id": c.id, "name": c.name, "title": c.title, "grade": c.grade, "domain": c.domain,
+            "business_unit": c.business_unit, "signal_score": c.signal_score, "signals": c.signals,
+            "outreach_draft": c.outreach_draft, "status": c.status, "identified_at": c.identified_at,
+            "exec_summary": extra.get("exec_summary", ""),
+            "ideal_match_tags": extra.get("ideal_match_tags", []),
+            "workday_completion": extra.get("workday_completion", {}),
+        })
+    return result
 
 
 @router.post("/candidates/{candidate_id}/send-outreach")
