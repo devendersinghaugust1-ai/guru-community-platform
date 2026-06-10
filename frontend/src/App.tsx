@@ -6,10 +6,12 @@ import MGApprovalQueue from './pages/MGApprovalQueue'
 import PipelineDashboard from './pages/PipelineDashboard'
 import Report from './pages/Report'
 import Leaderboard from './pages/Leaderboard'
+import KnowledgeDesk from './pages/KnowledgeDesk'
 import api from './api'
 
 const NAV = [
   { to: '/', label: '🎯 Community Hub' },
+  { to: '/knowledge-desk', label: '📚 Knowledge Desk' },
   { to: '/approvals', label: '✅ MG Approvals' },
   { to: '/pipeline', label: '🔍 Pipeline' },
   { to: '/leaderboard', label: '🏆 Leaderboard' },
@@ -71,6 +73,7 @@ export default function App() {
           <Route path="/pipeline" element={<PipelineDashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/report" element={<Report />} />
+          <Route path="/knowledge-desk" element={<KnowledgeDesk />} />
         </Routes>
       </div>
     </BrowserRouter>
