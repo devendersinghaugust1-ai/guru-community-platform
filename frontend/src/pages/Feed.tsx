@@ -271,18 +271,23 @@ export default function Feed() {
       <div style={{ width: 210, flexShrink: 0 }}>
         <div style={{ background: '#fff', borderRadius: 8, padding: 14, border: '1px solid #e0e0e0', marginBottom: 14 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 }}>Viewing as</div>
-          {gurus.map(g => (
-            <div key={g.id} onClick={() => setActiveGuruId(g.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
-                background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
-                border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
-              <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600 }}>{g.name.split(' ')[0]}</div>
-                <div style={{ fontSize: 10, color: '#888' }}>{g.grade} · {g.is_master_guru ? 'MG' : 'Guru'}</div>
+          <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+            {gurus.map(g => (
+              <div key={g.id} onClick={() => setActiveGuruId(g.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
+                  background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
+                  border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
+                <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {g.name.split(' ')[0]}
+                    {g.is_master_guru && <span style={{ fontSize: 8, background: '#ffc000', color: '#000', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>MG</span>}
+                  </div>
+                  <div style={{ fontSize: 9, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.title}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {activeGuru && (

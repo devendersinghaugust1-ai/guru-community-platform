@@ -29,7 +29,7 @@ GURUS = [
      "reviews_completed": 11, "review_turnaround_hrs": 3.8, "escalation_saves": 11,
      "contribution_index": 88,
      "narrative": "Fastest reviewer in the community — 3.8hr avg turnaround. Saved 11 AI escalations in HR domain."},
-    {"name": "Karthik Iyer", "title": "Guru — Finance Transformation", "grade": "VP",
+    {"name": "Karthik Iyer", "title": "Guru — Tax & Compliance", "grade": "VP",
      "domain": "Finance Transformation", "experience_years": 11,
      "certifications": "CMA, SAP FI Certified",
      "avatar_initials": "KI", "avatar_color": "#d83b01", "is_master_guru": False,
@@ -37,13 +37,138 @@ GURUS = [
      "reviews_completed": 5, "review_turnaround_hrs": 12.4, "escalation_saves": 3,
      "contribution_index": 61,
      "narrative": "5 KM reviews completed — 1 escalation save this month in Finance Transformation."},
-    {"name": "Nisha Agarwal", "title": "Guru — Supply Chain", "grade": "VP",
+    {"name": "Nisha Agarwal", "title": "Guru — Logistics & Distribution", "grade": "VP",
      "domain": "Supply Chain", "experience_years": 12, "certifications": "CSCMP, Lean Six Sigma",
      "avatar_initials": "NA", "avatar_color": "#038387", "is_master_guru": False,
      "use_cases_shared": 6, "learners_impacted": 145, "ai_guru_corrections": 2, "domain_rank": 3,
      "reviews_completed": 6, "review_turnaround_hrs": 8.9, "escalation_saves": 2,
      "contribution_index": 58,
      "narrative": "6 Supply Chain reviews this quarter — 2 AI escalation saves."},
+    # Finance Transformation — additional gurus
+    {"name": "Deepak Sharma", "title": "Master Guru — CFO Advisory", "grade": "MD",
+     "domain": "Finance Transformation", "experience_years": 22,
+     "certifications": "CPA, CGMA, Lean Six Sigma Master Black Belt",
+     "avatar_initials": "DS", "avatar_color": "#1B2A4A", "is_master_guru": True,
+     "use_cases_shared": 15, "learners_impacted": 610, "ai_guru_corrections": 12, "domain_rank": 1,
+     "reviews_completed": 18, "review_turnaround_hrs": 3.5, "escalation_saves": 12,
+     "contribution_index": 96,
+     "narrative": "Most senior Finance MG. Governs CFO Advisory corpus — 18 reviews, 12 escalation saves this quarter."},
+    {"name": "Meera Krishnan", "title": "Guru — FP&A & Budgeting", "grade": "VP",
+     "domain": "Finance Transformation", "experience_years": 13,
+     "certifications": "CFA Level 3, FP&A Certified",
+     "avatar_initials": "MK", "avatar_color": "#c8960c", "is_master_guru": False,
+     "use_cases_shared": 7, "learners_impacted": 170, "ai_guru_corrections": 4, "domain_rank": 4,
+     "reviews_completed": 7, "review_turnaround_hrs": 9.2, "escalation_saves": 4,
+     "contribution_index": 67,
+     "narrative": "FP&A specialist — 7 KM reviews this quarter with focus on budgeting frameworks."},
+    {"name": "Amit Patel", "title": "Guru — Treasury & Cash Management", "grade": "VP",
+     "domain": "Finance Transformation", "experience_years": 10,
+     "certifications": "CTP, ACT Qualified",
+     "avatar_initials": "AP", "avatar_color": "#ca5010", "is_master_guru": False,
+     "use_cases_shared": 4, "learners_impacted": 95, "ai_guru_corrections": 2, "domain_rank": 5,
+     "reviews_completed": 4, "review_turnaround_hrs": 14.1, "escalation_saves": 2,
+     "contribution_index": 48,
+     "narrative": "Treasury specialist joining the review cycle — 4 KM reviews in Finance Transformation."},
+    # Supply Chain — additional gurus
+    {"name": "Sunita Rao", "title": "Master Guru — Procurement & Sourcing", "grade": "SVP",
+     "domain": "Supply Chain", "experience_years": 19,
+     "certifications": "CPSM, CIPS Level 6, PMP",
+     "avatar_initials": "SR", "avatar_color": "#008272", "is_master_guru": True,
+     "use_cases_shared": 11, "learners_impacted": 380, "ai_guru_corrections": 9, "domain_rank": 1,
+     "reviews_completed": 13, "review_turnaround_hrs": 5.1, "escalation_saves": 9,
+     "contribution_index": 89,
+     "narrative": "Governs Supply Chain procurement corpus. 13 reviews, 9 escalation saves this quarter."},
+    {"name": "Vikram Nair", "title": "Guru — Demand Planning", "grade": "VP",
+     "domain": "Supply Chain", "experience_years": 11,
+     "certifications": "APICS CPIM, SAP SCM",
+     "avatar_initials": "VN", "avatar_color": "#4da636", "is_master_guru": False,
+     "use_cases_shared": 5, "learners_impacted": 130, "ai_guru_corrections": 3, "domain_rank": 4,
+     "reviews_completed": 5, "review_turnaround_hrs": 11.0, "escalation_saves": 3,
+     "contribution_index": 55,
+     "narrative": "Demand Planning specialist — 5 reviews with focus on forecasting methodology."},
+    {"name": "Pooja Joshi", "title": "Guru — Inventory Optimisation", "grade": "VP",
+     "domain": "Supply Chain", "experience_years": 9,
+     "certifications": "CSCP, Lean Six Sigma Green Belt",
+     "avatar_initials": "PJ", "avatar_color": "#00b294", "is_master_guru": False,
+     "use_cases_shared": 3, "learners_impacted": 72, "ai_guru_corrections": 1, "domain_rank": 5,
+     "reviews_completed": 3, "review_turnaround_hrs": 18.5, "escalation_saves": 1,
+     "contribution_index": 38,
+     "narrative": "Inventory Optimisation specialist — just getting active in the review cycle."},
+    # HR Modernisation — additional gurus
+    {"name": "Rajesh Gupta", "title": "Master Guru — Workforce Transformation", "grade": "SVP",
+     "domain": "HR Modernisation", "experience_years": 20,
+     "certifications": "SHRM-SCP, Prosci ADKAR, ICF PCC",
+     "avatar_initials": "RG", "avatar_color": "#5c2d91", "is_master_guru": True,
+     "use_cases_shared": 10, "learners_impacted": 290, "ai_guru_corrections": 14, "domain_rank": 1,
+     "reviews_completed": 16, "review_turnaround_hrs": 4.8, "escalation_saves": 14,
+     "contribution_index": 93,
+     "narrative": "Workforce Transformation MG. 16 reviews, highest escalation saves in HR domain this quarter."},
+    {"name": "Kavita Sharma", "title": "Guru — Talent Acquisition", "grade": "VP",
+     "domain": "HR Modernisation", "experience_years": 12,
+     "certifications": "SHRM-CP, LinkedIn Recruiter Certified",
+     "avatar_initials": "KS", "avatar_color": "#b4009e", "is_master_guru": False,
+     "use_cases_shared": 6, "learners_impacted": 155, "ai_guru_corrections": 4, "domain_rank": 3,
+     "reviews_completed": 6, "review_turnaround_hrs": 10.2, "escalation_saves": 4,
+     "contribution_index": 62,
+     "narrative": "Talent Acquisition specialist — 6 KM reviews with focus on AI-assisted hiring frameworks."},
+    {"name": "Arjun Kumar", "title": "Guru — Learning & Development", "grade": "VP",
+     "domain": "HR Modernisation", "experience_years": 10,
+     "certifications": "CPLP, ATD Master Trainer",
+     "avatar_initials": "AK", "avatar_color": "#744da9", "is_master_guru": False,
+     "use_cases_shared": 4, "learners_impacted": 110, "ai_guru_corrections": 3, "domain_rank": 4,
+     "reviews_completed": 4, "review_turnaround_hrs": 13.7, "escalation_saves": 3,
+     "contribution_index": 53,
+     "narrative": "L&D specialist — 4 curriculum reviews with focus on competency framework design."},
+    # Collections & Credit — new domain
+    {"name": "Suresh Menon", "title": "Master Guru — Collections Strategy", "grade": "SVP",
+     "domain": "Collections & Credit", "experience_years": 17,
+     "certifications": "CCE, CFA, CRCM",
+     "avatar_initials": "SM", "avatar_color": "#FF4E58", "is_master_guru": True,
+     "use_cases_shared": 9, "learners_impacted": 260, "ai_guru_corrections": 10, "domain_rank": 1,
+     "reviews_completed": 12, "review_turnaround_hrs": 5.6, "escalation_saves": 10,
+     "contribution_index": 86,
+     "narrative": "Collections & Credit domain lead. Governs corpus for AR and credit risk — 12 reviews this quarter."},
+    {"name": "Divya Nair", "title": "Guru — Credit Risk Analytics", "grade": "VP",
+     "domain": "Collections & Credit", "experience_years": 11,
+     "certifications": "FRM, CPA",
+     "avatar_initials": "DN", "avatar_color": "#e81123", "is_master_guru": False,
+     "use_cases_shared": 5, "learners_impacted": 125, "ai_guru_corrections": 4, "domain_rank": 2,
+     "reviews_completed": 6, "review_turnaround_hrs": 9.4, "escalation_saves": 4,
+     "contribution_index": 65,
+     "narrative": "Credit Risk specialist — 6 KM reviews with focus on credit scoring methodology."},
+    {"name": "Arun Singh", "title": "Guru — AR Collections", "grade": "VP",
+     "domain": "Collections & Credit", "experience_years": 9,
+     "certifications": "CTP, NACM Certified",
+     "avatar_initials": "AS2", "avatar_color": "#d13438", "is_master_guru": False,
+     "use_cases_shared": 4, "learners_impacted": 88, "ai_guru_corrections": 2, "domain_rank": 3,
+     "reviews_completed": 4, "review_turnaround_hrs": 15.2, "escalation_saves": 2,
+     "contribution_index": 44,
+     "narrative": "AR Collections specialist — building review habits, 4 KM reviews this quarter."},
+    # Procurement — new domain
+    {"name": "Lakshmi Bhat", "title": "Master Guru — Strategic Sourcing", "grade": "SVP",
+     "domain": "Procurement", "experience_years": 18,
+     "certifications": "CPSM, CPM, CIPS Level 6",
+     "avatar_initials": "LB", "avatar_color": "#7e4e60", "is_master_guru": True,
+     "use_cases_shared": 10, "learners_impacted": 300, "ai_guru_corrections": 8, "domain_rank": 1,
+     "reviews_completed": 11, "review_turnaround_hrs": 6.0, "escalation_saves": 8,
+     "contribution_index": 84,
+     "narrative": "Procurement domain lead. Strategic Sourcing expert — 11 KM reviews, 8 escalation saves."},
+    {"name": "Sanjay Verma", "title": "Guru — Supplier Management", "grade": "VP",
+     "domain": "Procurement", "experience_years": 13,
+     "certifications": "CPSM, PMP",
+     "avatar_initials": "SV", "avatar_color": "#986f0b", "is_master_guru": False,
+     "use_cases_shared": 6, "learners_impacted": 148, "ai_guru_corrections": 3, "domain_rank": 2,
+     "reviews_completed": 6, "review_turnaround_hrs": 10.8, "escalation_saves": 3,
+     "contribution_index": 59,
+     "narrative": "Supplier Management specialist — 6 KM reviews with focus on vendor risk frameworks."},
+    {"name": "Neha Gupta", "title": "Guru — Category Management", "grade": "VP",
+     "domain": "Procurement", "experience_years": 8,
+     "certifications": "CIPS Level 5, Lean Six Sigma Green Belt",
+     "avatar_initials": "NG", "avatar_color": "#bf8b12", "is_master_guru": False,
+     "use_cases_shared": 3, "learners_impacted": 66, "ai_guru_corrections": 1, "domain_rank": 3,
+     "reviews_completed": 3, "review_turnaround_hrs": 20.1, "escalation_saves": 1,
+     "contribution_index": 35,
+     "narrative": "Category Management specialist — recently joined the review cycle."},
 ]
 
 FEED_POSTS = [
@@ -154,6 +279,18 @@ NOTIFICATIONS_DATA = [
 ]
 
 
+def _patch_new_gurus(db: Session):
+    """Add new gurus introduced after initial seed without wiping existing data."""
+    existing_names = {g.name for g in db.query(Guru).all()}
+    base = datetime.utcnow() - timedelta(days=200)
+    for g in GURUS:
+        if g["name"] not in existing_names:
+            obj = Guru(**{k: v for k, v in g.items()},
+                       joined_at=base - timedelta(days=random.randint(50, 300)))
+            db.add(obj)
+    db.commit()
+
+
 def _patch_new_drafts(db: Session):
     """Add new KM drafts introduced after initial seed without wiping existing data."""
     new_titles = ["Agentic AI Course 2.0 — Learning Curriculum Draft"]
@@ -173,7 +310,7 @@ def _patch_new_drafts(db: Session):
 
 def seed(db: Session):
     if db.query(Guru).count() > 0:
-        # Still check if new KM drafts need to be added
+        _patch_new_gurus(db)
         _patch_new_drafts(db)
         return
 

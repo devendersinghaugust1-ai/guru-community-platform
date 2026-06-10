@@ -33,15 +33,18 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
 
   const choiceToRating: Record<string, number> = { approved: 3, not_approved: 1, mg_review: 2 }
 
+  const [notifiedMGs, setNotifiedMGs] = useState<any[]>([])
+
   const submit = async () => {
     if (!choice) return
     if ((choice === 'not_approved' || choice === 'mg_review') && !feedback.trim()) return
     setSubmitting(true)
-    await api.post(`/km/drafts/${draft.id}/rate`, {
+    const res = await api.post(`/km/drafts/${draft.id}/rate`, {
       guru_id: activeGuruId,
       rating: choiceToRating[choice],
       missing_link: feedback,
     })
+    if (res.data.notified_mgs?.length) setNotifiedMGs(res.data.notified_mgs)
     setSubmitted(true); setSubmitting(false); onRated()
   }
 
@@ -133,8 +136,20 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
             </button>
           </div>
         ) : (
-          <div style={{ marginTop: 10, padding: '8px 14px', background: '#e6f4ea', borderRadius: 6, fontSize: 12, color: '#107c10', fontWeight: 600 }}>
-            ✓ Your validation submitted{feedback ? ' · Feedback noted' : ''}
+          <div style={{ marginTop: 10, padding: '10px 14px', background: '#e6f4ea', borderRadius: 6, fontSize: 12, color: '#107c10' }}>
+            <div style={{ fontWeight: 600 }}>✓ Your validation submitted{feedback ? ' · Feedback noted' : ''}</div>
+            {notifiedMGs.length > 0 && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, color: '#555' }}>Escalated to:</span>
+                {notifiedMGs.map(mg => (
+                  <div key={mg.id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fff', border: '1px solid #8764b8', borderRadius: 16, padding: '3px 10px' }}>
+                    <Avatar initials={mg.initials} color={mg.color} size={18} />
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#8764b8' }}>{mg.name.split(' ')[0]}</span>
+                    <span style={{ fontSize: 10, color: '#888' }}>· Master Guru</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -146,22 +161,26 @@ function RealityCheckCard({ draft, activeGuruId, onRated }: any) {
 function StumpCard({ item, activeGuruId, onResolved }: any) {
   const [correction, setCorrection] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [resolved, setResolved] = useState(false)
   const confidencePct = Math.round(item.confidence_score * 100)
   const isTagged = item.tagged_mg?.id === activeGuruId
+  const alreadyResolved = item.status === 'resolved' || resolved
 
   const resolve = async () => {
     if (!correction.trim()) return
     setSubmitting(true)
     await api.post(`/km/stump/${item.id}/resolve`, { mg_id: activeGuruId, correction })
-    setSubmitting(false); onResolved()
+    setSubmitting(false)
+    setResolved(true)
+    onResolved()
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 8, border: `1px solid ${item.status === 'resolved' ? '#107c10' : '#FF4E58'}`, marginBottom: 12, overflow: 'hidden' }}>
-      <div style={{ background: item.status === 'resolved' ? '#107c10' : '#FF4E58', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ background: '#fff', borderRadius: 8, border: `1px solid ${alreadyResolved ? '#107c10' : '#FF4E58'}`, marginBottom: 12, overflow: 'hidden' }}>
+      <div style={{ background: alreadyResolved ? '#107c10' : '#FF4E58', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: 1, opacity: 0.85 }}>
-            {item.status === 'resolved' ? '✓ Resolved' : '🧱 Stumped'} · {item.domain}
+            {alreadyResolved ? '✓ Resolved' : '🧱 Stumped'} · {item.domain}
           </span>
           <div style={{ color: '#fff', fontSize: 11, marginTop: 2, opacity: 0.9 }}>
             AI Guru confidence: {confidencePct}% · {item.failure_count} unanswered queries
@@ -194,27 +213,29 @@ function StumpCard({ item, activeGuruId, onResolved }: any) {
           </div>
         </div>
 
-        {item.status === 'resolved' ? (
+        {alreadyResolved ? (
           <div style={{ padding: 12, background: '#e6f4ea', borderRadius: 6, borderLeft: '3px solid #107c10' }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#107c10', marginBottom: 4 }}>✓ EXPERT CORRECTION — GOING TO CORPUS</div>
-            <div style={{ fontSize: 12, color: '#333', lineHeight: 1.6 }}>{item.mg_correction}</div>
-          </div>
-        ) : isTagged ? (
-          <div style={{ padding: 12, background: '#fffbea', borderRadius: 8, border: '1px solid #ffc000' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#856404', marginBottom: 8 }}>
-              You've been tagged — approve the KM draft or drop the missing link
-            </div>
-            <textarea value={correction} onChange={e => setCorrection(e.target.value)} rows={3}
-              placeholder="Approve with a note, or correct the KM draft with what's actually right..."
-              style={{ width: '100%', padding: 8, border: '1px solid #ffc000', borderRadius: 6, fontSize: 12, resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-            <button onClick={resolve} disabled={!correction.trim() || submitting}
-              style={{ marginTop: 8, padding: '8px 20px', background: '#1B2A4A', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
-              {submitting ? 'Saving...' : '✓ Submit Expert Sign-off'}
-            </button>
+            <div style={{ fontSize: 12, color: '#333', lineHeight: 1.6 }}>{item.mg_correction || correction}</div>
           </div>
         ) : (
-          <div style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>
-            Waiting for {item.tagged_mg?.name || 'tagged Master Guru'} to resolve this escalation.
+          <div style={{ padding: 12, background: isTagged ? '#fffbea' : '#f8f9fa', borderRadius: 8, border: `1px solid ${isTagged ? '#ffc000' : '#e0e0e0'}` }}>
+            {isTagged ? (
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#856404', marginBottom: 8 }}>
+                You've been tagged — approve the KM draft or drop the missing link
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1B2A4A', marginBottom: 8 }}>
+                Domain expert? You can also submit your correction — any Guru's sign-off counts
+              </div>
+            )}
+            <textarea value={correction} onChange={e => setCorrection(e.target.value)} rows={3}
+              placeholder="Approve with a note, or correct the KM draft with what's actually right..."
+              style={{ width: '100%', padding: 8, border: `1px solid ${isTagged ? '#ffc000' : '#ddd'}`, borderRadius: 6, fontSize: 12, resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            <button onClick={resolve} disabled={!correction.trim() || submitting}
+              style={{ marginTop: 8, padding: '8px 20px', background: correction.trim() ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: correction.trim() ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: 13 }}>
+              {submitting ? 'Saving...' : '✓ Submit Expert Sign-off'}
+            </button>
           </div>
         )}
       </div>
@@ -255,18 +276,23 @@ export default function KnowledgeDesk() {
       <div style={{ width: 210, flexShrink: 0 }}>
         <div style={{ background: '#fff', borderRadius: 8, padding: 14, border: '1px solid #e0e0e0', marginBottom: 14 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 }}>Viewing as</div>
-          {gurus.map(g => (
-            <div key={g.id} onClick={() => setActiveGuruId(g.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
-                background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
-                border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
-              <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600 }}>{g.name.split(' ')[0]}</div>
-                <div style={{ fontSize: 10, color: '#888' }}>{g.grade} · {g.is_master_guru ? 'MG' : 'Guru'}</div>
+          <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+            {gurus.map(g => (
+              <div key={g.id} onClick={() => setActiveGuruId(g.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
+                  background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
+                  border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
+                <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {g.name.split(' ')[0]}
+                    {g.is_master_guru && <span style={{ fontSize: 8, background: '#ffc000', color: '#000', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>MG</span>}
+                  </div>
+                  <div style={{ fontSize: 9, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.title}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Summary card */}

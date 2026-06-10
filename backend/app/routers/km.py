@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, ExecutiveBroadcast, Guru
+from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, ExecutiveBroadcast, Guru, Notification
 
 router = APIRouter(prefix="/km", tags=["km"])
 
@@ -89,11 +89,31 @@ def rate_draft(draft_id: int, body: RatingIn, db: Session = Depends(get_db)):
     guru = db.query(Guru).filter(Guru.id == body.guru_id).first()
     if guru:
         guru.reviews_completed = (guru.reviews_completed or 0) + (0 if existing else 1)
-        # Recalculate contribution index (simple scoring)
         guru.contribution_index = min(100, (guru.reviews_completed * 5) + (guru.escalation_saves * 8))
 
+    # If escalated to MG (rating=2), notify domain Master Gurus
+    notified_mgs = []
+    if body.rating == 2:
+        domain_mgs = db.query(Guru).filter(
+            Guru.domain == draft.domain, Guru.is_master_guru == True  # noqa
+        ).all()
+        for mg in domain_mgs:
+            db.add(Notification(
+                guru_id=mg.id, type="approval_needed",
+                title=f"Guru escalated a KM draft to you — {draft.domain}",
+                message=f"'{draft.title}' was flagged by {guru.name if guru else 'a Guru'} for your expert review. "
+                        f"Feedback: {body.missing_link or 'Needs your sign-off before publishing.'}",
+            ))
+            notified_mgs.append({"id": mg.id, "name": mg.name,
+                                  "initials": mg.avatar_initials, "color": mg.avatar_color})
+
     db.commit()
-    return {"status": "rated", "new_avg": draft.avg_rating, "draft_status": draft.status}
+    return {
+        "status": "rated",
+        "new_avg": draft.avg_rating,
+        "draft_status": draft.status,
+        "notified_mgs": notified_mgs,
+    }
 
 
 # ── Stump the Master ─────────────────────────────────────────
