@@ -173,11 +173,26 @@ class OrganicSpark(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     domain: Mapped[str] = mapped_column(String(100))
-    signal: Mapped[str] = mapped_column(Text)              # trend/shift detected
-    prompt: Mapped[str] = mapped_column(Text)              # open prompt posted to community
+    signal: Mapped[str] = mapped_column(Text)
+    prompt: Mapped[str] = mapped_column(Text)
     source: Mapped[str] = mapped_column(String(200), default="")
     response_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    responses: Mapped[list["OrganicSparkResponse"]] = relationship("OrganicSparkResponse", back_populates="spark")
+
+
+class OrganicSparkResponse(Base):
+    __tablename__ = "organic_spark_responses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    spark_id: Mapped[int] = mapped_column(ForeignKey("organic_spark.id"))
+    guru_id: Mapped[int] = mapped_column(ForeignKey("gurus.id"))
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    spark: Mapped["OrganicSpark"] = relationship("OrganicSpark", back_populates="responses")
+    guru: Mapped["Guru"] = relationship("Guru")
 
 
 class ExecutiveBroadcast(Base):

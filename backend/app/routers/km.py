@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, ExecutiveBroadcast, Guru, Notification, FeedPost
+from app.models import KMDraft, RealityCheckRating, StumpTheMaster, OrganicSpark, OrganicSparkResponse, ExecutiveBroadcast, Guru, Notification, FeedPost
 
 router = APIRouter(prefix="/km", tags=["km"])
 
@@ -196,9 +196,30 @@ def resolve_stump(stump_id: int, body: CorrectionIn, db: Session = Depends(get_d
 @router.get("/spark")
 def list_sparks(db: Session = Depends(get_db)):
     items = db.query(OrganicSpark).order_by(OrganicSpark.created_at.desc()).all()
-    return [{"id": s.id, "domain": s.domain, "signal": s.signal, "prompt": s.prompt,
-             "source": s.source, "response_count": s.response_count,
-             "created_at": s.created_at.isoformat()} for s in items]
+    result = []
+    for s in items:
+        responses = []
+        for r in db.query(OrganicSparkResponse).filter(
+            OrganicSparkResponse.spark_id == s.id
+        ).order_by(OrganicSparkResponse.created_at).all():
+            g = db.query(Guru).filter(Guru.id == r.guru_id).first()
+            responses.append({
+                "id": r.id,
+                "guru_id": r.guru_id,
+                "guru_name": g.name if g else "Unknown",
+                "guru_initials": g.avatar_initials if g else "?",
+                "guru_color": g.avatar_color if g else "#999",
+                "guru_title": g.title if g else "",
+                "content": r.content,
+                "created_at": r.created_at.isoformat(),
+            })
+        result.append({
+            "id": s.id, "domain": s.domain, "signal": s.signal, "prompt": s.prompt,
+            "source": s.source, "response_count": s.response_count,
+            "created_at": s.created_at.isoformat(),
+            "responses": responses,
+        })
+    return result
 
 
 class SparkResponseIn(BaseModel):
@@ -211,26 +232,39 @@ def respond_to_spark(spark_id: int, body: SparkResponseIn, db: Session = Depends
     item = db.query(OrganicSpark).filter(OrganicSpark.id == spark_id).first()
     if not item:
         return {"status": "not_found"}
+
+    if not body.content.strip():
+        return {"status": "empty"}
+
+    guru = db.query(Guru).filter(Guru.id == body.guru_id).first()
+
+    # Store the response
+    db.add(OrganicSparkResponse(
+        spark_id=spark_id,
+        guru_id=body.guru_id,
+        content=body.content.strip(),
+    ))
     item.response_count += 1
 
-    # If Guru wrote a response, publish it as a community post so the feed stays alive
-    if body.content.strip():
-        guru = db.query(Guru).filter(Guru.id == body.guru_id).first()
-        db.add(FeedPost(
-            guru_id=body.guru_id,
-            post_type="domain_insight",
-            title=f"Corpus Discussion response: {item.domain}",
-            content=body.content.strip(),
-            domain=item.domain,
-            tags=f"corpus-discussion,{item.domain.lower().replace(' ', '-')}",
-            agent_generated=False,
+    # Update Guru contribution metrics
+    if guru:
+        guru.ai_guru_corrections = (guru.ai_guru_corrections or 0) + 1
+        guru.contribution_index = min(100, (guru.reviews_completed * 5) + (guru.escalation_saves * 8) + (guru.ai_guru_corrections * 3))
+
+    # Notify domain MGs so they can relay to KM for corpus update
+    domain_mgs = db.query(Guru).filter(
+        Guru.domain == item.domain, Guru.is_master_guru == True  # noqa
+    ).all()
+    guru_name = guru.name if guru else "A Guru"
+    for mg in domain_mgs:
+        db.add(Notification(
+            guru_id=mg.id, type="corpus_response",
+            title=f"Corpus Discussion response — {item.domain}",
+            message=f"{guru_name} responded to a corpus gap in your domain:\n\n\"{body.content.strip()[:200]}\"\n\nReview and pass to your KM to improve the AI Guru corpus.",
         ))
-        if guru:
-            guru.ai_guru_corrections = (guru.ai_guru_corrections or 0) + 1
-            guru.contribution_index = min(100, (guru.reviews_completed * 5) + (guru.escalation_saves * 8) + (guru.ai_guru_corrections * 3))
 
     db.commit()
-    return {"status": "recorded"}
+    return {"status": "recorded", "response_count": item.response_count}
 
 
 # ── Executive Broadcasts ─────────────────────────────────────

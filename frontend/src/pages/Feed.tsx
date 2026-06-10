@@ -35,67 +35,95 @@ function SectionHeader({ icon, title, subtitle, color }: any) {
 }
 
 // ── Corpus Discussion card ──────────────────────────────────
-function SparkCard({ item, onRespond }: any) {
-  const [open, setOpen] = useState(false)
+function SparkCard({ item, activeGuruId, activeGuru, onRespond }: any) {
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [responses, setResponses] = useState<any[]>(item.responses || [])
 
   const submit = async () => {
     if (!text.trim()) return
     setSubmitting(true)
     await onRespond(item.id, text.trim())
+    setResponses((r: any[]) => [...r, {
+      id: Date.now(), guru_id: activeGuruId,
+      guru_name: activeGuru?.name || 'You',
+      guru_initials: activeGuru?.avatar_initials || '?',
+      guru_color: activeGuru?.avatar_color || '#999',
+      guru_title: activeGuru?.title || '',
+      content: text.trim(),
+      created_at: new Date().toISOString(),
+    }])
+    setText('')
     setSubmitted(true)
     setSubmitting(false)
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', marginBottom: 12, overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #ddd', marginBottom: 12, overflow: 'hidden' }}>
+      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1B2A4A, #2d4a7a)', padding: '10px 16px' }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>🧠 Corpus Discussion · {item.domain}</span>
         <div style={{ fontSize: 10, color: '#aac0e0', marginTop: 2 }}>Agent-detected gap in AI Guru corpus · {timeAgo(item.created_at)}</div>
       </div>
+
       <div style={{ padding: 16 }}>
-        <div style={{ fontSize: 12, color: '#444', background: '#f3f2f1', padding: 12, borderRadius: 6, lineHeight: 1.7, fontStyle: 'italic', whiteSpace: 'pre-line' }}>
+        {/* Prompt */}
+        <div style={{ fontSize: 12, color: '#444', background: '#f3f2f1', padding: 12, borderRadius: 6, lineHeight: 1.7, fontStyle: 'italic', whiteSpace: 'pre-line', marginBottom: 14 }}>
           {item.prompt}
         </div>
 
-        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: '#888' }}>
-            {item.response_count} Guru{item.response_count !== 1 ? 's' : ''} responded
-          </span>
-          {submitted ? (
-            <span style={{ fontSize: 12, color: '#107c10', fontWeight: 600 }}>✓ Your read is noted — thank you</span>
-          ) : !open ? (
-            <button onClick={() => setOpen(true)}
-              style={{ padding: '6px 16px', background: '#1B2A4A', color: '#fff', border: 'none', borderRadius: 16, cursor: 'pointer', fontSize: 12 }}>
-              💬 Share my read
-            </button>
-          ) : null}
-        </div>
-
-        {open && !submitted && (
-          <div style={{ marginTop: 12, padding: 14, background: '#f3f0fa', borderRadius: 8, border: '1px solid #8764b830' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#1B2A4A', marginBottom: 8 }}>
-              Your read — what have you seen on real engagements?
+        {/* Existing responses */}
+        {responses.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#8764b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+              {responses.length} Guru response{responses.length !== 1 ? 's' : ''} — sent to KM
             </div>
-            <textarea
-              value={text}
-              onChange={e => setText(e.target.value)}
-              autoFocus
-              rows={3}
-              placeholder="Share your take — what actually works on client engagements? What's the missing piece the AI Guru is getting wrong?"
-              style={{ width: '100%', padding: 10, border: '1px solid #c8b8e8', borderRadius: 6, fontSize: 12, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
-            />
-            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => { setOpen(false); setText('') }}
-                style={{ padding: '6px 14px', background: '#fff', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#555' }}>
-                Cancel
-              </button>
-              <button onClick={submit} disabled={!text.trim() || submitting}
-                style={{ padding: '6px 16px', background: text.trim() ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: text.trim() ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: 600 }}>
-                {submitting ? 'Submitting…' : '✓ Submit to Corpus'}
-              </button>
+            {responses.map((r: any) => (
+              <div key={r.id} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                <Avatar initials={r.guru_initials} color={r.guru_color} size={28} />
+                <div style={{ flex: 1, background: '#f3f0fa', borderRadius: 8, padding: '8px 12px', border: '1px solid #8764b820' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1B2A4A' }}>{r.guru_name}
+                    <span style={{ fontWeight: 400, color: '#888', marginLeft: 6 }}>{r.guru_title}</span>
+                    <span style={{ color: '#bbb', marginLeft: 8 }}>{timeAgo(r.created_at)}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#333', marginTop: 4, lineHeight: 1.6 }}>{r.content}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Response input — always visible */}
+        {submitted ? (
+          <div style={{ padding: '10px 14px', background: '#e6f4ea', borderRadius: 8, fontSize: 12, color: '#107c10', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            ✓ Your read has been sent to the KM for corpus improvement
+            <button onClick={() => setSubmitted(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 11 }}>Add another</button>
+          </div>
+        ) : (
+          <div style={{ background: '#fafafa', borderRadius: 8, border: '1px solid #e0e0e0', padding: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#555', marginBottom: 8 }}>
+              💬 Your expert read — goes to KM for corpus improvement
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              {activeGuru && <Avatar initials={activeGuru.avatar_initials} color={activeGuru.avatar_color} size={28} />}
+              <div style={{ flex: 1 }}>
+                <textarea
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  rows={2}
+                  placeholder="What have you seen on client engagements? What's the correct answer or the missing piece?"
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12, lineHeight: 1.6, resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
+                  onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submit() }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                  <span style={{ fontSize: 10, color: '#bbb' }}>Ctrl+Enter to submit</span>
+                  <button onClick={submit} disabled={!text.trim() || submitting}
+                    style={{ padding: '5px 16px', background: text.trim() ? '#1B2A4A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: text.trim() ? 'pointer' : 'not-allowed', fontSize: 12, fontWeight: 600 }}>
+                    {submitting ? 'Sending…' : '→ Send to KM'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -391,10 +419,9 @@ export default function Feed() {
               No corpus gaps flagged right now. Click Refresh to run the agent scan.
             </div>
           ) : (
-            sparks.map(s => <SparkCard key={s.id} item={s} onRespond={async (id: number, content: string) => {
+            sparks.map(s => <SparkCard key={s.id} item={s} activeGuruId={activeGuruId} activeGuru={activeGuru} onRespond={async (id: number, content: string) => {
               await api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId, content })
               api.get('/km/spark').then(r => setSparks(r.data))
-              api.get('/feed/').then(r => setPosts(r.data))
             }} />)
           )}
         </div>
