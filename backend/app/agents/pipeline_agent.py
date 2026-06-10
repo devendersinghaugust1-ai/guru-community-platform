@@ -41,15 +41,24 @@ def _signals(p: dict) -> list:
 
 
 def _draft(p: dict) -> str:
-    return f"""Dear {p['name'].split()[0]},
+    first = p['name'].split()[0]
+    return f"""Subject: An invitation from the Genpact Guru Community
 
-Your expertise in {p['domain']} makes you an ideal Guru candidate at Genpact.
+Dear {first},
 
-As a Guru, your contributions will be directly visible to BU heads and senior leadership through our quarterly Capability Report — your name, your domain, your impact.
+I hope you're settling in well at Genpact.
 
-Your first contribution takes under 10 minutes: share one use case or project insight from your work in {p['domain']}.
+I'm reaching out on behalf of the Master Guru Group — a senior peer community where VPs, SVPs, and MDs across Genpact share expertise, mentor the next generation of leaders, and build meaningful visibility with business leadership.
 
-Would you be open to a brief conversation with our MGG team this week?
+Your profile puts you in the right room for this community.
+
+Members of the Guru Community are recognised in our quarterly BU Head Capability Report — your name, your business unit, your domain. Several of your peers in {p['business_unit']} are already active members.
+
+The community is growing, and we are specifically looking to bring in senior voices from {p['domain']}.
+
+Would you be open to a brief 20-minute conversation with our team this week? There is no obligation — we'd simply like to show you what it looks like from the inside.
 
 Warm regards,
-MGG Team | Genome.ai"""
+
+Master Guru Group (MGG)
+Genome.ai · Genpact"""

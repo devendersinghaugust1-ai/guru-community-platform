@@ -29,6 +29,15 @@ def send_outreach(candidate_id: int, data: OutreachApproval, db: Session = Depen
     return {"status": "skipped"}
 
 
+@router.post("/candidates/{candidate_id}/mark-joined")
+def mark_joined(candidate_id: int, db: Session = Depends(get_db)):
+    c = db.query(PipelineCandidate).filter(PipelineCandidate.id == candidate_id).first()
+    if c:
+        c.status = "joined"
+        db.commit()
+    return {"status": "joined"}
+
+
 @router.get("/stats")
 def pipeline_stats(db: Session = Depends(get_db)):
     all_c = db.query(PipelineCandidate).all()
