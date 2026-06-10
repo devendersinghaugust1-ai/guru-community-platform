@@ -341,23 +341,28 @@ export default function Feed() {
           <div style={{ maxHeight: 380, overflowY: 'auto' }}>
             {gurus.map(g => (
               <div key={g.id}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 6, marginBottom: 3,
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6, marginBottom: 3,
                   background: activeGuruId === g.id ? '#e8f0fe' : 'transparent',
                   border: activeGuruId === g.id ? '1px solid #0078d4' : '1px solid transparent' }}>
                 <div onClick={() => setActiveGuruId(g.id)} style={{ cursor: 'pointer', flexShrink: 0 }}>
-                  <Avatar initials={g.avatar_initials} color={g.avatar_color} size={26} />
+                  <Avatar initials={g.avatar_initials} color={g.avatar_color} size={28} />
                 </div>
-                <div onClick={() => setActiveGuruId(g.id)} style={{ minWidth: 0, flex: 1, cursor: 'pointer' }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {g.name.split(' ')[0]}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span
+                      onClick={() => navigate(`/guru/${g.id}`)}
+                      style={{ fontSize: 12, fontWeight: 700, color: '#003087', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: '#003087' }}>
+                      {g.name.split(' ')[0]}
+                    </span>
                     {g.is_master_guru && <span style={{ fontSize: 8, background: '#ffc000', color: '#000', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>MG</span>}
                   </div>
-                  <div style={{ fontSize: 9, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.title}</div>
+                  <div style={{ fontSize: 9, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.title}</div>
+                  <div
+                    onClick={() => setActiveGuruId(g.id)}
+                    style={{ fontSize: 9, color: activeGuruId === g.id ? '#0078d4' : '#aaa', cursor: 'pointer', marginTop: 1, fontWeight: activeGuruId === g.id ? 700 : 400 }}>
+                    {activeGuruId === g.id ? '● Viewing as' : 'Switch to'}
+                  </div>
                 </div>
-                <span onClick={() => navigate(`/guru/${g.id}`)} title="View profile"
-                  style={{ fontSize: 12, color: '#0078d4', cursor: 'pointer', flexShrink: 0, padding: '2px 4px', borderRadius: 4, opacity: 0.7 }}>
-                  👤
-                </span>
               </div>
             ))}
           </div>

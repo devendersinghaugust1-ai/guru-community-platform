@@ -186,9 +186,11 @@ export default function Leaderboard() {
 
                 {/* Name + avatar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Avatar initials={g.initials} color={g.color} size={32} />
+                  <div style={{ flexShrink: 0, border: '2px solid #fff', borderRadius: '50%', boxShadow: '0 0 0 1px #e0e0e0' }}>
+                    <Avatar initials={g.initials} color={g.color} size={36} />
+                  </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#1B2A4A' }}>{g.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4A', lineHeight: 1.2 }}>{g.name}</div>
                     <RoleBadge isMG={g.is_master_guru} />
                   </div>
                 </div>
@@ -197,21 +199,21 @@ export default function Leaderboard() {
                 <div><GradeBadge grade={g.grade} /></div>
 
                 {/* Use Cases (reviews as proxy) */}
-                <div style={{ fontWeight: 700, fontSize: 15, color: '#0078d4' }}>
-                  {g.reviews_completed}
-                  <span style={{ fontSize: 10, color: '#888', fontWeight: 400, marginLeft: 4 }}>reviews</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 17, color: '#0078d4', lineHeight: 1 }}>{g.reviews_completed}</div>
+                  <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>reviews</div>
                 </div>
 
                 {/* Learners Impacted */}
-                <div style={{ fontWeight: 700, fontSize: 15, color: '#107c10' }}>
-                  {(g.learners_impacted || 0).toLocaleString()}
-                  <span style={{ fontSize: 10, color: '#888', fontWeight: 400, marginLeft: 4 }}>learners</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 17, color: '#107c10', lineHeight: 1 }}>{(g.learners_impacted || 0).toLocaleString()}</div>
+                  <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>learners</div>
                 </div>
 
                 {/* AI Corrections */}
-                <div style={{ fontWeight: 700, fontSize: 15, color: '#FF4E58' }}>
-                  {g.escalation_saves}
-                  <span style={{ fontSize: 10, color: '#888', fontWeight: 400, marginLeft: 4 }}>saves</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 17, color: '#d83b01', lineHeight: 1 }}>{g.escalation_saves}</div>
+                  <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>AI saves</div>
                 </div>
 
                 {/* Contribution Index */}
