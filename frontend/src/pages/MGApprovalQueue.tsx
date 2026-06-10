@@ -13,6 +13,7 @@ export default function MGApprovalQueue() {
   const [deciding, setDeciding] = useState<string | null>(null)
   const [decided, setDecided] = useState<Record<string, { action: string; label: string }>>({})
   const [mgNotes, setMgNotes] = useState<Record<string, string>>({})
+  const [stumpCorrections, setStumpCorrections] = useState<Record<string, string>>({})
 
   const loadQueue = async () => {
     const [q, s] = await Promise.all([
@@ -43,6 +44,18 @@ export default function MGApprovalQueue() {
     await loadQueue()
   }
 
+  // ── Stump sign-off (goes directly to corpus) ────────────────
+  const resolveStump = async (stumpId: number) => {
+    const key = `stump_${stumpId}`
+    const correction = stumpCorrections[key]
+    if (!correction?.trim()) return
+    setDeciding(key)
+    await api.post(`/km/stump/${stumpId}/resolve`, { mg_id: activeMG, correction })
+    setDecided(d => ({ ...d, [key]: { action: 'resolved', label: '✓ Expert sign-off sent to AI Guru corpus' } }))
+    setDeciding(null)
+    await loadQueue()
+  }
+
   // ── KM Draft decision (escalated from Knowledge Desk) ───────
   const decideKMDraft = async (draftId: number, action: string) => {
     const key = `km_${draftId}`
@@ -64,22 +77,24 @@ export default function MGApprovalQueue() {
 
   const useCasePending = queue.filter(i => i.item_type === 'use_case').length
   const kmDraftPending = queue.filter(i => i.item_type === 'km_draft').length
+  const stumpPending = queue.filter(i => i.item_type === 'stump').length
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 20, color: '#003087' }}>✅ MG Approval Queue</h2>
         <p style={{ color: '#666', fontSize: 13, margin: '4px 0 0' }}>
-          All items waiting for your decision — use cases, and KM drafts escalated by Gurus.
+          Use cases, KM drafts escalated by Gurus, and open Stump the Master items waiting for your sign-off.
         </p>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 20 }}>
           {[
             { label: 'Use Cases', value: useCasePending, color: '#ffc000' },
             { label: 'KM Drafts', value: kmDraftPending, color: '#8764b8' },
+            { label: 'Open Stumps', value: stumpPending, color: '#FF4E58' },
             { label: 'Approved', value: stats.approved, color: '#107c10' },
             { label: 'Edited', value: stats.edited, color: '#0078d4' },
             { label: 'Avg Quality', value: `${Math.round((stats.avg_quality_score || 0) * 100)}%`, color: '#d83b01' },
@@ -253,6 +268,75 @@ export default function MGApprovalQueue() {
                           style={actionBtn('#107c10')}>✅ Approve Draft</button>
                         <button onClick={() => decideKMDraft(item.id, 'reject')} disabled={deciding === key}
                           style={{ ...actionBtn('#fff'), color: '#d83b01', border: '1px solid #d83b01' }}>🔄 Send Back for Revision</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
+          // ── STUMP card ────────────────────────────────────────
+          if (item.item_type === 'stump') {
+            const key = `stump_${item.id}`
+            const isExpanded = expanded === key
+            const isDone = !!decided[key]
+            const confidencePct = Math.round((item.confidence_score || 0) * 100)
+            const correction = stumpCorrections[key] || ''
+            return (
+              <div key={key} style={{ background: '#fff', borderRadius: 8, border: isDone ? '1px solid #107c10' : '1px solid #FF4E58', marginBottom: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: isDone ? '#f0faf0' : '#fff8f8' }}
+                  onClick={() => setExpanded(isExpanded ? null : key)}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FF4E58', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 16, flexShrink: 0 }}>🧱</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, background: '#FF4E5820', color: '#FF4E58', border: '1px solid #FF4E58', borderRadius: 4, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Stump the Master</span>
+                      {item.tagged_mg && (
+                        <span style={{ fontSize: 10, color: '#888' }}>Tagged: {item.tagged_mg.name.split(' ')[0]}</span>
+                      )}
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 14, marginTop: 2, fontStyle: 'italic' }}>"{item.query?.slice(0, 80)}{(item.query?.length || 0) > 80 ? '…' : ''}"</div>
+                    <div style={{ fontSize: 12, color: '#666' }}>{item.domain} · {confidencePct}% AI confidence · {item.failure_count} unanswered queries</div>
+                  </div>
+                  <span style={{ color: '#999', fontSize: 18 }}>{isExpanded ? '▲' : '▼'}</span>
+                </div>
+
+                {isExpanded && (
+                  <div style={{ padding: '16px 20px' }}>
+                    <div style={{ fontSize: 12, color: '#555', fontStyle: 'italic', padding: 10, background: '#fff8f0', borderRadius: 6, borderLeft: '3px solid #FF4E58', marginBottom: 14, lineHeight: 1.6 }}>
+                      {item.agent_prompt}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                      <div style={{ padding: 10, background: '#fce8e6', borderRadius: 6 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#d83b01', marginBottom: 4 }}>AI GURU ATTEMPTED</div>
+                        <div style={{ fontSize: 11, color: '#444', lineHeight: 1.5 }}>{item.ai_attempt}</div>
+                      </div>
+                      <div style={{ padding: 10, background: '#e8f4fd', borderRadius: 6 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#0078d4', marginBottom: 4 }}>KM STAGED RESPONSE</div>
+                        <div style={{ fontSize: 11, color: '#444', lineHeight: 1.5 }}>{item.km_draft}</div>
+                      </div>
+                    </div>
+
+                    {isDone ? (
+                      <div style={{ padding: '10px 16px', background: '#e6f4ea', borderRadius: 6, fontWeight: 700, color: '#107c10', fontSize: 13 }}>
+                        {decided[key].label}
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Your Expert Sign-off (goes directly to AI Guru corpus)</div>
+                        <textarea
+                          value={correction}
+                          onChange={e => setStumpCorrections(s => ({ ...s, [key]: e.target.value }))}
+                          rows={3}
+                          placeholder="Approve the KM draft with a note, or provide the correct answer — your sign-off updates the AI Guru corpus directly."
+                          style={{ width: '100%', padding: 10, border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 12, fontFamily: 'inherit', resize: 'vertical', marginBottom: 10, boxSizing: 'border-box' }} />
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <button onClick={() => resolveStump(item.id)} disabled={!correction.trim() || deciding === key}
+                            style={actionBtn(correction.trim() ? '#FF4E58' : '#ccc')}>
+                            {deciding === key ? 'Saving...' : '✓ Submit to Corpus'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

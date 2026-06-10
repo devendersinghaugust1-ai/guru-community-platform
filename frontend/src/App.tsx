@@ -16,7 +16,7 @@ const NAV = [
   { to: '/approvals', label: '✅ MG Approvals' },
   { to: '/pipeline', label: '🔍 Pipeline' },
   { to: '/leaderboard', label: '🏆 Leaderboard' },
-  { to: '/report', label: '📤 Executive Broadcast' },
+  { to: '/report', label: '📤 Exec Broadcast' },
   { to: '/feedback', label: '💬 Platform Feedback' },
 ]
 
@@ -49,23 +49,28 @@ export default function App() {
   return (
     <BrowserRouter>
       <div style={{ minHeight: '100vh', background: '#f3f2f1' }}>
-        <nav style={{ background: '#003087', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 32, height: 52 }}>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: 0.5 }}>
+        <nav style={{ background: '#003087', padding: '0 16px', display: 'flex', alignItems: 'center', height: 52, gap: 0 }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 15, letterSpacing: 0.5, flexShrink: 0, marginRight: 16, whiteSpace: 'nowrap' }}>
             🧠 Guru Community
           </span>
-          {NAV.map(n => (
-            <NavLink key={n.to} to={n.to} end={n.to === '/'}
-              style={({ isActive }) => ({
-                color: isActive ? '#ffc000' : '#cce4ff',
-                fontWeight: isActive ? 700 : 400,
-                fontSize: 14,
-                textDecoration: 'none',
-                paddingBottom: 4,
-                borderBottom: isActive ? '2px solid #ffc000' : '2px solid transparent',
-              })}>
-              {n.label}
-            </NavLink>
-          ))}
+          <div style={{ display: 'flex', gap: 4, flex: 1, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
+            {NAV.map(n => (
+              <NavLink key={n.to} to={n.to} end={n.to === '/'}
+                style={({ isActive }) => ({
+                  color: isActive ? '#ffc000' : '#cce4ff',
+                  fontWeight: isActive ? 700 : 400,
+                  fontSize: 13,
+                  textDecoration: 'none',
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  whiteSpace: 'nowrap',
+                  background: isActive ? 'rgba(255,192,0,0.12)' : 'transparent',
+                  borderBottom: isActive ? '2px solid #ffc000' : '2px solid transparent',
+                })}>
+                {n.label}
+              </NavLink>
+            ))}
+          </div>
           <NotificationBell guruId={1} />
         </nav>
         <Routes>

@@ -330,14 +330,31 @@ export default function Feed() {
       <div style={{ flex: 1 }}>
 
         {/* ── Corpus Discussion ── */}
-        {sparks.length > 0 && (
-          <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0', marginBottom: 20 }}>
-            <SectionHeader icon="🧠" title="Corpus Discussion"
-              subtitle="Agent detected gaps or failures in the AI Guru corpus — share your expertise to improve it. Zero obligation."
-              color="#8764b8" />
-            {sparks.map(s => <SparkCard key={s.id} item={s} onRespond={(id: number) => api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId })} />)}
+        <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 10, borderBottom: '2px solid #8764b8' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🧠</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#1B2A4A' }}>Corpus Discussion</div>
+                <div style={{ fontSize: 11, color: '#888' }}>Agent scans AI Guru corpus for knowledge gaps — share your expertise to improve it. Zero obligation.</div>
+              </div>
+            </div>
+            <button onClick={async () => {
+              await api.post('/agents/ai-guru-quality')
+              api.get('/km/spark').then(r => setSparks(r.data))
+            }} style={{ flexShrink: 0, padding: '5px 12px', background: '#f0eafa', color: '#8764b8', border: '1px solid #8764b8', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+              ↻ Refresh
+            </button>
           </div>
-        )}
+          {sparks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 24, color: '#888', fontSize: 13 }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🧠</div>
+              No corpus gaps flagged right now. Click Refresh to run the agent scan.
+            </div>
+          ) : (
+            sparks.map(s => <SparkCard key={s.id} item={s} onRespond={(id: number) => api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId })} />)
+          )}
+        </div>
 
         {/* ── Original posts (optional sharing) ── */}
         <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0' }}>

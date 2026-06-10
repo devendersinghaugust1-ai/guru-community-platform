@@ -308,10 +308,56 @@ def _patch_new_drafts(db: Session):
                 db.commit()
 
 
+def _patch_mg_escalated_demo(db: Session):
+    """Ensure at least one mg_escalated draft exists so MG Approvals shows live demo data."""
+    exists = db.query(KMDraft).filter(KMDraft.status == "mg_escalated").first()
+    if exists:
+        return
+    # Escalate an existing needs_revision or pending draft to mg_escalated as a demo
+    demo_title = "Working Capital Optimisation — AI-Assisted Treasury Playbook"
+    already = db.query(KMDraft).filter(KMDraft.title == demo_title).first()
+    if not already:
+        demo_draft = KMDraft(
+            km_name="Arjun Mehta (KM)", domain="Finance Transformation",
+            title=demo_title,
+            content="AI-assisted treasury management combines cash flow forecasting models with dynamic liquidity buffers. Key components: (1) Rolling 13-week cash flow forecast using ML on historical patterns. (2) Automated variance alerts when actuals deviate >5% from forecast. (3) Recommended liquidity buffer sizing based on cash flow volatility. (4) Supplier payment optimisation — dynamic terms aligned to working capital targets. This playbook reduces manual treasury cycles from weekly to near-real-time.",
+            tags="treasury,working-capital,AI,cash-flow,playbook",
+            agent_prompt="KM has drafted an AI-assisted Working Capital Optimisation playbook. Finance Transformation Gurus — Reality Check 💰\n\nDoes this treasury approach actually hold up in a complex, multi-entity corporate treasury environment?\n\n1 = Won't survive a CFO review\n2 = Right direction, missing one key element\n3 = This is exactly what we'd propose to a treasury client\n\nIf it's not a 3, what's the gap?",
+            status="mg_escalated", avg_rating=2.0, rating_count=1,
+            created_at=datetime.utcnow() - timedelta(days=1),
+        )
+        db.add(demo_draft)
+        db.commit()
+        # Add a demo rating showing a Guru flagged this for MG review
+        demo_draft_obj = db.query(KMDraft).filter(KMDraft.title == demo_title).first()
+        if demo_draft_obj:
+            guru = db.query(Guru).filter(Guru.is_master_guru == False).first()  # noqa
+            if guru:
+                from app.models import RealityCheckRating
+                db.add(RealityCheckRating(
+                    draft_id=demo_draft_obj.id, guru_id=guru.id,
+                    rating=2,
+                    missing_link="The multi-entity consolidation scenario is missing — most large treasury clients run across 20+ entities and the liquidity buffer sizing doesn't account for intercompany netting.",
+                    created_at=datetime.utcnow() - timedelta(hours=3),
+                ))
+                db.commit()
+
+
+def _patch_corpus_discussions(db: Session):
+    """Run AI Guru quality agent to seed Corpus Discussion items if none exist from the agent."""
+    from app.models import OrganicSpark
+    agent_sparks = db.query(OrganicSpark).filter(OrganicSpark.source == "AI Guru Quality Agent").first()
+    if not agent_sparks:
+        from app.agents import ai_guru_quality
+        ai_guru_quality.run(db)
+
+
 def seed(db: Session):
     if db.query(Guru).count() > 0:
         _patch_new_gurus(db)
         _patch_new_drafts(db)
+        _patch_mg_escalated_demo(db)
+        _patch_corpus_discussions(db)
         return
 
     base = datetime.utcnow() - timedelta(days=45)

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from app.database import get_db
-from app.models import ApprovalQueue, FeedPost, Guru, Notification, KMDraft, RealityCheckRating
+from app.models import ApprovalQueue, FeedPost, Guru, Notification, KMDraft, RealityCheckRating, StumpTheMaster
 from app.agents import hitl_workflow
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -189,6 +189,26 @@ def full_queue(db: Session = Depends(get_db)):
             "agent_prompt": draft.agent_prompt,
             "escalated_by": escalated_by,
             "created_at": draft.created_at.isoformat(),
+        })
+
+    # 3. Open Stump items — MG can also provide expert sign-off
+    for stump in db.query(StumpTheMaster).filter(StumpTheMaster.status == "open").order_by(StumpTheMaster.created_at):
+        tagged = db.query(Guru).filter(Guru.id == stump.tagged_mg_id).first() if stump.tagged_mg_id else None
+        items.append({
+            "item_type": "stump",
+            "id": stump.id,
+            "domain": stump.domain,
+            "query": stump.query,
+            "ai_attempt": stump.ai_attempt,
+            "km_draft": stump.km_draft,
+            "confidence_score": stump.confidence_score,
+            "failure_count": stump.failure_count,
+            "agent_prompt": stump.agent_prompt,
+            "tagged_mg": {
+                "id": tagged.id, "name": tagged.name,
+                "initials": tagged.avatar_initials, "color": tagged.avatar_color
+            } if tagged else None,
+            "created_at": stump.created_at.isoformat(),
         })
 
     return sorted(items, key=lambda x: x["created_at"])
