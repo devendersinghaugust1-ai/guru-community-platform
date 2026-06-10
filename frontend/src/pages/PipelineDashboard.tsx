@@ -179,7 +179,6 @@ function CandidateCard({ candidate, onAction }: { candidate: any; onAction: (c: 
           <div style={{ fontSize: 11, color: '#666', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{candidate.title}</div>
           <div style={{ fontSize: 10, color: '#999', marginTop: 1 }}>{candidate.business_unit}</div>
         </div>
-        <ScoreDot score={candidate.signal_score} />
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
