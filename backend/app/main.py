@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from app.database import init_db, SessionLocal
 from app.seed import seed
-from app.routers import feed, gurus, notifications, pipeline, reports, agents, approvals, km
+from app.routers import feed, gurus, notifications, pipeline, reports, agents, approvals, km, feedback
 import os
 
 @asynccontextmanager
@@ -38,6 +38,7 @@ app.include_router(reports.router, prefix="/api")
 app.include_router(agents.router, prefix="/api")
 app.include_router(approvals.router, prefix="/api")
 app.include_router(km.router, prefix="/api")
+app.include_router(feedback.router, prefix="/api")
 
 # Keep old routes working for local dev (no /api prefix)
 app.include_router(feed.router)
@@ -48,6 +49,7 @@ app.include_router(reports.router)
 app.include_router(agents.router)
 app.include_router(approvals.router)
 app.include_router(km.router)
+app.include_router(feedback.router)
 
 # ── Serve React frontend static files ─────────────────────
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")

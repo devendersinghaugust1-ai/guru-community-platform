@@ -7,6 +7,7 @@ import PipelineDashboard from './pages/PipelineDashboard'
 import Report from './pages/Report'
 import Leaderboard from './pages/Leaderboard'
 import KnowledgeDesk from './pages/KnowledgeDesk'
+import PlatformFeedback from './pages/PlatformFeedback'
 import api from './api'
 
 const NAV = [
@@ -16,6 +17,7 @@ const NAV = [
   { to: '/pipeline', label: '🔍 Pipeline' },
   { to: '/leaderboard', label: '🏆 Leaderboard' },
   { to: '/report', label: '📤 Executive Broadcast' },
+  { to: '/feedback', label: '💬 Platform Feedback' },
 ]
 
 function NotificationBell({ guruId }: { guruId: number }) {
@@ -74,6 +76,7 @@ export default function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/report" element={<Report />} />
           <Route path="/knowledge-desk" element={<KnowledgeDesk />} />
+          <Route path="/feedback" element={<PlatformFeedback />} />
         </Routes>
       </div>
     </BrowserRouter>

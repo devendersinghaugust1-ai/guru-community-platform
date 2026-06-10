@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from app.database import get_db
-from app.models import ApprovalQueue, FeedPost, Guru, Notification
+from app.models import ApprovalQueue, FeedPost, Guru, Notification, KMDraft, RealityCheckRating
 from app.agents import hitl_workflow
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -133,6 +133,65 @@ def mg_decide(thread_id: str, decision: MGDecision, db: Session = Depends(get_db
                             message=f"Master Guru declined '{item.draft_title}'. {decision.notes or 'Please revise and resubmit.'}"))
     db.commit()
     return {"status": "ok", "action": decision.action}
+
+
+@router.get("/full-queue")
+def full_queue(db: Session = Depends(get_db)):
+    """Combined queue: use cases + KM draft escalations + Stump pending MG review."""
+    items = []
+
+    # 1. Use cases pending MG approval
+    for item in db.query(ApprovalQueue).filter(ApprovalQueue.status == "pending").order_by(ApprovalQueue.created_at):
+        guru = db.query(Guru).filter(Guru.id == item.guru_id).first()
+        items.append({
+            "item_type": "use_case",
+            "thread_id": item.thread_id,
+            "id": item.id,
+            "domain": item.domain,
+            "title": item.draft_title,
+            "content": item.draft_content,
+            "tags": item.draft_tags.split(",") if item.draft_tags else [],
+            "quality_score": item.quality_score,
+            "quality_signals": json.loads(item.quality_signals) if item.quality_signals else {},
+            "quality_flags": json.loads(item.quality_flags) if item.quality_flags else [],
+            "estimated_reach": item.estimated_reach,
+            "corpus_entry": item.corpus_entry,
+            "submitter_name": guru.name if guru else "Unknown",
+            "submitter_grade": guru.grade if guru else "",
+            "submitter_avatar": guru.avatar_initials if guru else "?",
+            "submitter_color": guru.avatar_color if guru else "#666",
+            "created_at": item.created_at.isoformat(),
+        })
+
+    # 2. KM Drafts escalated to MG
+    for draft in db.query(KMDraft).filter(KMDraft.status == "mg_escalated").order_by(KMDraft.created_at):
+        ratings = db.query(RealityCheckRating).filter(
+            RealityCheckRating.draft_id == draft.id,
+            RealityCheckRating.rating == 2
+        ).all()
+        escalated_by = []
+        for r in ratings:
+            g = db.query(Guru).filter(Guru.id == r.guru_id).first()
+            if g:
+                escalated_by.append({
+                    "name": g.name, "initials": g.avatar_initials,
+                    "color": g.avatar_color, "feedback": r.missing_link
+                })
+        items.append({
+            "item_type": "km_draft",
+            "id": draft.id,
+            "domain": draft.domain,
+            "title": draft.title,
+            "content": draft.content,
+            "tags": draft.tags.split(",") if draft.tags else [],
+            "km_name": draft.km_name,
+            "avg_rating": draft.avg_rating,
+            "agent_prompt": draft.agent_prompt,
+            "escalated_by": escalated_by,
+            "created_at": draft.created_at.isoformat(),
+        })
+
+    return sorted(items, key=lambda x: x["created_at"])
 
 
 @router.get("/stats")

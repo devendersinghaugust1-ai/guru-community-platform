@@ -211,3 +211,15 @@ class PipelineCandidate(Base):
     outreach_draft: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(30), default="identified")  # identified, outreach_sent, joined
     identified_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class PlatformFeedback(Base):
+    __tablename__ = "platform_feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    submitter_name: Mapped[str] = mapped_column(String(100))
+    submitter_role: Mapped[str] = mapped_column(String(20))   # Guru, KM, Other
+    issue_type: Mapped[str] = mapped_column(String(50))       # Bug, Suggestion, Data Issue, Other
+    description: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(30), default="open")  # open, acknowledged, resolved
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

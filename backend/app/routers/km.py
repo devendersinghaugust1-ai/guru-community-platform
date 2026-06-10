@@ -91,17 +91,18 @@ def rate_draft(draft_id: int, body: RatingIn, db: Session = Depends(get_db)):
         guru.reviews_completed = (guru.reviews_completed or 0) + (0 if existing else 1)
         guru.contribution_index = min(100, (guru.reviews_completed * 5) + (guru.escalation_saves * 8))
 
-    # If escalated to MG (rating=2), notify domain Master Gurus
+    # If escalated to MG (rating=2), set draft to mg_escalated and notify domain MGs
     notified_mgs = []
     if body.rating == 2:
+        draft.status = "mg_escalated"
         domain_mgs = db.query(Guru).filter(
             Guru.domain == draft.domain, Guru.is_master_guru == True  # noqa
         ).all()
         for mg in domain_mgs:
             db.add(Notification(
                 guru_id=mg.id, type="approval_needed",
-                title=f"Guru escalated a KM draft to you — {draft.domain}",
-                message=f"'{draft.title}' was flagged by {guru.name if guru else 'a Guru'} for your expert review. "
+                title=f"KM draft escalated to you for sign-off — {draft.domain}",
+                message=f"'{draft.title}' was flagged by {guru.name if guru else 'a Guru'} and needs your expert review in MG Approvals. "
                         f"Feedback: {body.missing_link or 'Needs your sign-off before publishing.'}",
             ))
             notified_mgs.append({"id": mg.id, "name": mg.name,
@@ -114,6 +115,33 @@ def rate_draft(draft_id: int, body: RatingIn, db: Session = Depends(get_db)):
         "draft_status": draft.status,
         "notified_mgs": notified_mgs,
     }
+
+
+class MGDraftDecision(BaseModel):
+    mg_id: int
+    action: str   # "approve" or "reject"
+    notes: str = ""
+
+
+@router.post("/drafts/{draft_id}/mg-decide")
+def mg_decide_draft(draft_id: int, body: MGDraftDecision, db: Session = Depends(get_db)):
+    draft = db.query(KMDraft).filter(KMDraft.id == draft_id).first()
+    if not draft:
+        return {"error": "Draft not found"}
+    draft.status = "approved" if body.action == "approve" else "needs_revision"
+    # Notify all gurus who rated this draft
+    ratings = db.query(RealityCheckRating).filter(RealityCheckRating.draft_id == draft_id).all()
+    mg = db.query(Guru).filter(Guru.id == body.mg_id).first()
+    mg_name = mg.name if mg else "Master Guru"
+    for r in ratings:
+        db.add(Notification(
+            guru_id=r.guru_id, type="impact",
+            title=f"MG {'approved' if body.action == 'approve' else 'revised'} the draft you escalated",
+            message=f"'{draft.title}' was {'approved and is now live' if body.action == 'approve' else 'sent back for revision'} by {mg_name}."
+                    + (f" Notes: {body.notes}" if body.notes else ""),
+        ))
+    db.commit()
+    return {"status": "decided", "draft_status": draft.status}
 
 
 # ── Stump the Master ─────────────────────────────────────────
@@ -145,6 +173,7 @@ class CorrectionIn(BaseModel):
 
 @router.post("/stump/{stump_id}/resolve")
 def resolve_stump(stump_id: int, body: CorrectionIn, db: Session = Depends(get_db)):
+    """Any Guru's sign-off goes directly to AI Guru corpus — no MG gate."""
     item = db.query(StumpTheMaster).filter(StumpTheMaster.id == stump_id).first()
     if not item:
         return {"error": "Not found"}

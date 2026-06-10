@@ -34,14 +34,14 @@ function SectionHeader({ icon, title, subtitle, color }: any) {
   )
 }
 
-// ── Organic Spark card ──────────────────────────────────────
+// ── Corpus Discussion card ──────────────────────────────────
 function SparkCard({ item, onRespond }: any) {
   const [responded, setResponded] = useState(false)
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', marginBottom: 12, overflow: 'hidden' }}>
       <div style={{ background: 'linear-gradient(135deg, #1B2A4A, #2d4a7a)', padding: '10px 16px' }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>📡 Organic Spark · {item.domain}</span>
-        <div style={{ fontSize: 10, color: '#aac0e0', marginTop: 2 }}>Agent-detected signal · {timeAgo(item.created_at)}</div>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#FAC778', textTransform: 'uppercase', letterSpacing: 1 }}>🧠 Corpus Discussion · {item.domain}</span>
+        <div style={{ fontSize: 10, color: '#aac0e0', marginTop: 2 }}>Agent-detected gap in AI Guru corpus · {timeAgo(item.created_at)}</div>
       </div>
       <div style={{ padding: 16 }}>
         <div style={{ fontSize: 12, color: '#444', background: '#f3f2f1', padding: 12, borderRadius: 6, lineHeight: 1.7, fontStyle: 'italic', whiteSpace: 'pre-line' }}>
@@ -329,11 +329,11 @@ export default function Feed() {
       {/* Main content */}
       <div style={{ flex: 1 }}>
 
-        {/* ── Organic Spark ── */}
+        {/* ── Corpus Discussion ── */}
         {sparks.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0', marginBottom: 20 }}>
-            <SectionHeader icon="📡" title="Organic Spark"
-              subtitle="Agent-detected signals from across client engagements — share your read if it's on your mind. Zero obligation."
+            <SectionHeader icon="🧠" title="Corpus Discussion"
+              subtitle="Agent detected gaps or failures in the AI Guru corpus — share your expertise to improve it. Zero obligation."
               color="#8764b8" />
             {sparks.map(s => <SparkCard key={s.id} item={s} onRespond={(id: number) => api.post(`/km/spark/${id}/respond`, { guru_id: activeGuruId })} />)}
           </div>
