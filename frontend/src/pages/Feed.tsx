@@ -408,14 +408,26 @@ export default function Feed({ activeGuruId, onGuruChange }: { activeGuruId: num
       {/* Main content */}
       <div style={{ flex: 1 }}>
 
-        {/* ── Corpus Discussion ── */}
+        {/* ── Community Posts (top priority) ── */}
         <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0', marginBottom: 20 }}>
+          <SectionHeader icon="💬" title="Community Posts"
+            subtitle="Original posts from Gurus — use cases, insights, corrections"
+            color="#0078d4" />
+          <ComposeBox activeGuru={activeGuru} onSubmitted={() => api.get('/feed/').then(r => setPosts(r.data))} />
+          {posts.map(post => (
+            <PostCard key={post.id} post={post} activeGuru={activeGuru}
+              onReact={react} onComment={() => {}} />
+          ))}
+        </div>
+
+        {/* ── Corpus Discussion (below Community Posts) ── */}
+        <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, paddingBottom: 10, borderBottom: '2px solid #8764b8' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 20 }}>🧠</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15, color: '#1B2A4A' }}>Corpus Discussion</div>
-                <div style={{ fontSize: 11, color: '#888' }}>Agent scans AI Guru corpus for knowledge gaps — share your expertise to improve it. Zero obligation.</div>
+                <div style={{ fontSize: 11, color: '#888' }}>Agent-detected gaps in AI Guru corpus — share your expertise to improve it.</div>
               </div>
             </div>
             <button onClick={async () => {
@@ -436,18 +448,6 @@ export default function Feed({ activeGuruId, onGuruChange }: { activeGuruId: num
               api.get('/km/spark').then(r => setSparks(r.data))
             }} />)
           )}
-        </div>
-
-        {/* ── Original posts (optional sharing) ── */}
-        <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: '1px solid #e0e0e0' }}>
-          <SectionHeader icon="💬" title="Community Posts"
-            subtitle="Original posts from Gurus — shared when they feel like it"
-            color="#0078d4" />
-          <ComposeBox activeGuru={activeGuru} onSubmitted={() => api.get('/feed/').then(r => setPosts(r.data))} />
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} activeGuru={activeGuru}
-              onReact={react} onComment={() => {}} />
-          ))}
         </div>
       </div>
     </div>

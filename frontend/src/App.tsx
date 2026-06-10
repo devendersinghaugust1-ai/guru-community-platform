@@ -11,10 +11,10 @@ import PlatformFeedback from './pages/PlatformFeedback'
 import api from './api'
 
 const NAV = [
+  { to: '/pipeline', label: '🔍 Pipeline' },
   { to: '/', label: '🎯 Community Hub' },
   { to: '/knowledge-desk', label: '📚 Knowledge Desk' },
   { to: '/approvals', label: '✅ MG Approvals' },
-  { to: '/pipeline', label: '🔍 Pipeline' },
   { to: '/leaderboard', label: '🏆 Leaderboard' },
   { to: '/report', label: '📤 Exec Broadcast' },
   { to: '/feedback', label: '💬 Platform Feedback' },
